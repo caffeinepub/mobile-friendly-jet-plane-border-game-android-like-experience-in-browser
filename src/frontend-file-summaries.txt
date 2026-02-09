@@ -1,0 +1,12 @@
+{
+  "frontend/src/App.tsx": "Root application component that renders the full-screen game container with the GameScreen component.",
+  "frontend/src/game/GameScreen.tsx": "Main game controller managing game state, player position, bullet spawning/movement/cleanup, touch input, fire cooldown, and animation loop with boundary enforcement.",
+  "frontend/src/game/Playfield.tsx": "Renders the bordered game area with four visible borders, corner accents, and a grid pattern overlay for visual depth.",
+  "frontend/src/game/entities/PlayerJet.tsx": "Player jet entity rendered using SVG primitives with fuselage, wings, cockpit canopy, and animated thruster glow effects in the arcade orange/red theme.",
+  "frontend/src/game/ui/GameOverlay.tsx": "Polished game UI overlay system with gradient-enhanced start/pause screens, in-game HUD showing bullet count, pause button, and mobile-friendly fire control with proper event handling.",
+  "frontend/src/game/physics/bounds.ts": "Utility function to clamp player position within playfield boundaries accounting for entity size.",
+  "frontend/src/index.css": "Global styles with arcade-themed orange/red OKLCH color system, custom game shadows, typography, and jet thruster flicker animation.",
+  "frontend/tailwind.config.js": "Tailwind configuration extended with game-specific color tokens (game-primary, game-border, game-field, etc.) for consistent theming.",
+  "frontend/src/hooks/useQueries.ts": "Placeholder file for React Query hooks; intentionally minimal as game state is fully client-side.",
+  "frontend/src/game/entities/Bullet.tsx": "Bullet entity component rendered as a glowing projectile using div primitives with gradient core, glow effect, and trailing effect matching the arcade theme."
+}

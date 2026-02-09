@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 5,
+  "summary": "Mobile-friendly (Android-like) jet game in a browser with four borders; jet is rendered (not a bitmap image), can fire bullets, and includes an attractive UI design.",
+  "architectural_notes": [
+    "Target platform is Android; project should be compatible with Android Studio workflow (open/build/run).",
+    "Player jet should be rendered programmatically (e.g., canvas/vector shapes) rather than a static image asset."
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-build-a-mobile-friendly-browser-game-experience-react-app-that-mimics-an-android-mobile-game-since-the-project-must-remain-within-the-provided-react-motoko-template-and-cannot-generate-a-native-android-studio-kotlin-java-project",
+      "title": "Build a mobile-friendly browser game experience (React app) that mimics an Android mobile game, since the project must remain within the provided React+Motoko template and cannot generate a native Android Studio (Kotlin/Java) project.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-core-playfield-with-exactly-four-visible-borders-defining-the-playable-area-and-enforce-collision-constraints-so-the-player-cannot-move-outside-these-borders",
+      "title": "Implement the core playfield with exactly four visible borders defining the playable area, and enforce collision/constraints so the player cannot move outside these borders.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-controllable-player-entity-visually-represented-as-a-jet-plane-top-down-or-angled-2d-3d-style-is-acceptable-and-basic-movement-controls-suitable-for-mobile-e-g-drag-to-move-or-virtual-joystick",
+      "title": "Add a controllable player entity visually represented as a jet plane (top-down or angled 2D/3D style is acceptable) and basic movement controls suitable for mobile (e.g., drag-to-move or virtual joystick).",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-minimal-game-ui-states-for-usability-start-or-tap-to-start-pause-resume-and-restart-after-stopping-gameplay-e-g-when-the-user-chooses-to-reset",
+      "title": "Add minimal game UI states for usability: Start (or Tap to Start), Pause/Resume, and Restart after stopping gameplay (e.g., when the user chooses to reset).",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-and-apply-a-coherent-visual-theme-colors-typography-layout-appropriate-for-an-arcade-jet-game-and-apply-it-consistently-across-the-game-screen-and-ui-overlays-avoid-blue-purple-as-the-primary-palette",
+      "title": "Create and apply a coherent visual theme (colors, typography, layout) appropriate for an arcade jet game and apply it consistently across the game screen and UI overlays. Avoid blue/purple as the primary palette.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-generated-static-image-assets-for-the-jet-and-optional-ui-iconography-under-frontend-public-assets-generated-and-render-them-in-the-ui-game-scene-without-routing-images-through-the-backend",
+      "title": "Add generated static image assets for the jet and (optional) UI/iconography under frontend/public/assets/generated and render them in the UI/game scene without routing images through the backend.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-player-jet-rendering-so-it-is-not-an-image-asset-update-the-player-entity-to-be-drawn-using-non-image-primitives-e-g-html-css-shapes-and-or-inline-svg-while-preserving-the-current-positioning-and-movement-behavior",
+      "title": "Replace the player jet rendering so it is not an image asset: update the player entity to be drawn using non-image primitives (e.g., HTML/CSS shapes and/or inline SVG) while preserving the current positioning and movement behavior.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-shooting-mechanics-so-the-player-jet-can-produce-fire-bullets-during-gameplay-including-bullet-spawning-forward-movement-and-cleanup-when-bullets-leave-the-playfield-provide-a-mobile-friendly-control-for-firing-bullets-while-the-game-is-in-the-playing-state",
+      "title": "Implement shooting mechanics so the player jet can produce/fire bullets during gameplay, including bullet spawning, forward movement, and cleanup when bullets leave the playfield. Provide a mobile-friendly control for firing bullets while the game is in the 'playing' state.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-overall-in-game-ui-visual-presentation-to-be-more-amazing-and-attractive-enhancing-the-start-pause-resume-restart-overlays-and-in-game-hud-while-staying-consistent-with-the-existing-orange-red-arcade-theme-and-keeping-all-user-facing-text-in-english",
+      "title": "Improve the overall in-game UI/visual presentation to be more amazing and attractive, enhancing the start/pause/resume/restart overlays and in-game HUD while staying consistent with the existing orange/red arcade theme and keeping all user-facing text in English.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Create an Android mobile game project that can be opened/built in Android Studio.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Game design: four borders (screen boundaries/walls) defining the play area.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Player character: controllable jet-plane-like player entity.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Render the jet player as a non-image (e.g., vector/shape/canvas) instead of using a sprite image.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add shooting mechanics: the jet produces/fires bullets during gameplay.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Improve overall UI/visual design to be more attractive for users (polished arcade-style theme).",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Mobile-friendly jet plane border game (Android-like experience in browser)",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

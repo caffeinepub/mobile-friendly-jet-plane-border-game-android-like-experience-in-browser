@@ -1,0 +1,65 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-replace-the-player-jet-rendering-so-it-is-not-an-image-asset-update-the-player-entity-to-be-drawn-using-non-image-primitives-e-g-html-css-shapes-and-or-inline-svg-while-preserving-the-current-positioning-and-movement-behavior",
+      "featureTitle": "Replace the player jet rendering so it is not an image asset: update the player entity to be drawn using non-image primitives (e.g., HTML/CSS shapes and/or inline SVG) while preserving the current positioning and movement behavior.",
+      "files": [
+        "frontend/src/game/entities/PlayerJet.tsx",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-shooting-mechanics-so-the-player-jet-can-produce-fire-bullets-during-gameplay-including-bullet-spawning-forward-movement-and-cleanup-when-bullets-leave-the-playfield-provide-a-mobile-friendly-control-for-firing-bullets-while-the-game-is-in-the-playing-state",
+      "featureTitle": "Implement shooting mechanics so the player jet can produce/fire bullets during gameplay, including bullet spawning, forward movement, and cleanup when bullets leave the playfield. Provide a mobile-friendly control for firing bullets while the game is in the 'playing' state.",
+      "files": [
+        "frontend/src/game/GameScreen.tsx",
+        "frontend/src/game/entities/Bullet.tsx",
+        "frontend/src/game/ui/GameOverlay.tsx",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-8"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-improve-the-overall-in-game-ui-visual-presentation-to-be-more-amazing-and-attractive-enhancing-the-start-pause-resume-restart-overlays-and-in-game-hud-while-staying-consistent-with-the-existing-orange-red-arcade-theme-and-keeping-all-user-facing-text-in-english",
+      "featureTitle": "Improve the overall in-game UI/visual presentation to be more amazing and attractive, enhancing the start/pause/resume/restart overlays and in-game HUD while staying consistent with the existing orange/red arcade theme and keeping all user-facing text in English.",
+      "files": [
+        "frontend/src/game/GameScreen.tsx",
+        "frontend/src/game/ui/GameOverlay.tsx",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-9"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

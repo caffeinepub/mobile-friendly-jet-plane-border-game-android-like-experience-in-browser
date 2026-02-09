@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --radius: 0.75rem;
+        
+        /* Arcade Orange/Red Theme - Light Mode */
+        --background: 0.98 0.01 40;
+        --foreground: 0.2 0.02 30;
+        --card: 1 0 0;
+        --card-foreground: 0.2 0.02 30;
+        --popover: 1 0 0;
+        --popover-foreground: 0.2 0.02 30;
+        --primary: 0.25 0.02 30;
+        --primary-foreground: 0.98 0.01 40;
+        --secondary: 0.92 0.01 40;
+        --secondary-foreground: 0.25 0.02 30;
+        --muted: 0.95 0.01 40;
+        --muted-foreground: 0.5 0.01 35;
+        --accent: 0.92 0.01 40;
+        --accent-foreground: 0.25 0.02 30;
+        --destructive: 0.55 0.22 25;
+        --destructive-foreground: 0.98 0.01 40;
+        --border: 0.88 0.01 40;
+        --input: 0.88 0.01 40;
+        --ring: 0.65 0.15 35;
+        
+        /* Game-specific colors */
+        --game-primary: 0.58 0.20 35;
+        --game-primary-hover: 0.52 0.22 30;
+        --game-secondary: 0.48 0.18 15;
+        --game-secondary-hover: 0.42 0.20 10;
+        --game-accent: 0.68 0.18 45;
+        --game-border: 0.55 0.20 35;
+        --game-field: 0.15 0.03 30;
+    }
+
+    .dark {
+        /* Arcade Orange/Red Theme - Dark Mode */
+        --background: 0.12 0.03 30;
+        --foreground: 0.95 0.01 40;
+        --card: 0.18 0.03 30;
+        --card-foreground: 0.95 0.01 40;
+        --popover: 0.18 0.03 30;
+        --popover-foreground: 0.95 0.01 40;
+        --primary: 0.88 0.01 40;
+        --primary-foreground: 0.18 0.03 30;
+        --secondary: 0.25 0.03 30;
+        --secondary-foreground: 0.95 0.01 40;
+        --muted: 0.25 0.03 30;
+        --muted-foreground: 0.65 0.01 35;
+        --accent: 0.35 0.05 35;
+        --accent-foreground: 0.95 0.01 40;
+        --destructive: 0.65 0.20 25;
+        --destructive-foreground: 0.18 0.03 30;
+        --border: 0.25 0.03 30;
+        --input: 0.25 0.03 30;
+        --ring: 0.55 0.15 35;
+        
+        /* Game-specific colors - Dark Mode */
+        --game-primary: 0.62 0.22 35;
+        --game-primary-hover: 0.68 0.24 35;
+        --game-secondary: 0.52 0.20 15;
+        --game-secondary-hover: 0.58 0.22 15;
+        --game-accent: 0.72 0.20 45;
+        --game-border: 0.60 0.22 35;
+        --game-field: 0.08 0.04 30;
+    }
+
+    * {
+        @apply border-border;
+    }
+    
+    body {
+        @apply bg-background text-foreground;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Impact', 'Arial Black', sans-serif;
+        letter-spacing: 0.02em;
+    }
+}
+
+@layer utilities {
+    .shadow-game {
+        box-shadow: 
+            0 0 30px rgba(255, 100, 0, 0.3),
+            inset 0 0 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .shadow-game-button {
+        box-shadow: 
+            0 4px 20px rgba(255, 100, 0, 0.4),
+            0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    .shadow-game-button-hover {
+        box-shadow: 
+            0 6px 30px rgba(255, 100, 0, 0.6),
+            0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Jet thruster animation */
+    @keyframes thruster-flicker {
+        0%, 100% { opacity: 0.8; transform: scaleY(1); }
+        50% { opacity: 1; transform: scaleY(1.15); }
+    }
+    
+    .jet-thruster {
+        animation: thruster-flicker 0.15s ease-in-out infinite;
+    }
+}

@@ -1,2 +1,3 @@
-# mobile-friendly-jet-plane-border-game-android-like-experience-in-browser
-Exported from Caffeine project: Mobile-friendly jet plane border game (Android-like experience in browser)
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`
