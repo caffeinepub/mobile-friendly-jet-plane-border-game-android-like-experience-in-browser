@@ -1,13 +1,20 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
+  "projectStateVersion": 13,
   "summary": "Mobile-friendly (Android-like) jet game in a browser with four borders; jet is rendered (not a bitmap image), can fire bullets, and includes an attractive UI design.",
   "architectural_notes": [
     "Target platform is Android; project should be compatible with Android Studio workflow (open/build/run).",
-    "Player jet should be rendered programmatically (e.g., canvas/vector shapes) rather than a static image asset."
+    "Player jet should be rendered programmatically (e.g., canvas/vector shapes) rather than a static image asset.",
+    "Mobile controls should use a virtual joystick; jet orientation/rotation should follow movement direction; on-screen controls should be positioned per spec (joystick left, fire button left).",
+    "Bullets should spawn from the jet’s front/nose position and initial velocity should align with the jet’s current facing direction.",
+    "Add collision handling outcomes: player-obstacle, bullet-obstacle, and player-border collisions should trigger explosion feedback and transition game state to Game Over.",
+    "Obstacle-obstacle collisions should resolve via a reflection/bounce response (reverse or reflect velocity) to separate entities and prevent overlap.",
+    "Prefer responsive scaling for mobile: tune sizes of jet/obstacles/bullets/UI so the playfield reads well on small screens."
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Production deployment domain slug rejected: must be 5–50 chars and contain only letters, numbers, and hyphens."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-build-a-mobile-friendly-browser-game-experience-react-app-that-mimics-an-android-mobile-game-since-the-project-must-remain-within-the-provided-react-motoko-template-and-cannot-generate-a-native-android-studio-kotlin-java-project",
@@ -80,6 +87,134 @@
         "REQ-9"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-replace-the-current-drag-to-move-pointer-control-with-a-virtual-joystick-control-that-drives-player-movement-while-the-game-state-is-playing",
+      "title": "Replace the current drag-to-move pointer control with a virtual joystick control that drives player movement while the game state is \"playing\".",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-player-jet-rendering-so-that-the-jet-rotates-to-face-the-current-movement-direction-based-on-joystick-input-while-preserving-the-existing-svg-jet-visuals-and-positioning",
+      "title": "Update the player jet rendering so that the jet rotates to face the current movement direction (based on joystick input) while preserving the existing SVG jet visuals and positioning.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-mobile-friendly-on-screen-virtual-joystick-ui-positioned-on-the-left-side-of-the-screen-during-gameplay-and-ensure-it-captures-touch-pointer-input-without-triggering-other-game-interactions",
+      "title": "Add a mobile-friendly on-screen virtual joystick UI positioned on the left side of the screen during gameplay, and ensure it captures touch/pointer input without triggering other game interactions.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-move-the-fire-button-control-to-the-left-side-of-the-screen-during-gameplay-left-hand-placement-and-ensure-it-remains-easy-to-press-without-overlapping-the-joystick",
+      "title": "Move the FIRE button control to the left side of the screen during gameplay (left-hand placement), and ensure it remains easy to press without overlapping the joystick.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-any-gameplay-instruction-text-shown-in-overlays-to-reflect-joystick-movement-keep-all-user-facing-text-in-english",
+      "title": "Update any gameplay instruction text shown in overlays to reflect joystick movement (keep all user-facing text in English).",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-moving-obstacle-entities-that-spawn-during-gameplay-and-move-in-a-random-zig-zag-pattern-within-the-playfield-while-the-game-state-is-playing",
+      "title": "Add moving obstacle entities that spawn during gameplay and move in a random zig-zag pattern within the playfield while the game state is \"playing\".",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-bullet-spawning-so-each-bullet-originates-from-the-jet-s-front-nose-the-face-side-based-on-the-jet-s-current-rotation-rather-than-always-spawning-above-the-jet",
+      "title": "Update bullet spawning so each bullet originates from the jet’s front/nose (the \"face side\") based on the jet’s current rotation, rather than always spawning above the jet.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-bullet-movement-so-bullets-travel-forward-in-the-same-direction-as-the-jet-s-facing-direction-at-the-moment-the-bullet-is-fired",
+      "title": "Update bullet movement so bullets travel forward in the same direction as the jet’s facing direction at the moment the bullet is fired.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-revise-the-visual-ui-structure-of-the-playerjet-and-obstacle-entities-to-a-new-more-clearly-readable-shape-language-still-consistent-with-the-existing-orange-red-arcade-theme-without-changing-their-positioning-system-percentage-based-or-breaking-rotation-movement-behavior",
+      "title": "Revise the visual/UI structure of the PlayerJet and Obstacle entities to a new, more clearly readable shape language (still consistent with the existing orange/red arcade theme), without changing their positioning system (percentage-based) or breaking rotation/movement behavior.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-bomb-like-explosion-effect-that-can-be-displayed-at-an-x-y-position-inside-the-playfield-and-can-be-triggered-by-gameplay-events-player-crash-bullet-hit-border-crash-the-explosion-should-be-visible-and-feel-impactful-flash-expanding-blast-fading-embers-smoke-like-glow-and-it-must-not-require-image-assets",
+      "title": "Implement a bomb-like explosion effect that can be displayed at an (x,y) position inside the playfield and can be triggered by gameplay events (player crash, bullet hit, border crash). The explosion should be visible and feel impactful (flash + expanding blast + fading embers/smoke-like glow), and it must not require image assets.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-game-over-flow-to-the-game-state-machine-and-ui-when-a-game-ending-collision-occurs-stop-gameplay-updates-play-the-explosion-at-the-collision-point-and-then-show-a-game-over-overlay-with-a-restart-action-all-user-facing-text-in-english",
+      "title": "Add a 'game over' flow to the game state machine and UI: when a game-ending collision occurs, stop gameplay updates, play the explosion at the collision point, and then show a Game Over overlay with a Restart action (all user-facing text in English).",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-collision-detection-and-outcomes-during-the-playing-state-player-obstacle-trigger-explosion-at-collision-point-and-transition-to-game-over-bullet-obstacle-trigger-explosion-at-collision-point-and-transition-to-game-over-player-border-walls-when-the-player-hits-a-playfield-border-trigger-explosion-and-transition-to-game-over-do-not-merely-clamp-and-continue",
+      "title": "Implement collision detection and outcomes during the 'playing' state:\n- Player ↔ Obstacle: trigger explosion at collision point and transition to Game Over.\n- Bullet ↔ Obstacle: trigger explosion at collision point and transition to Game Over.\n- Player ↔ Border/Walls: when the player hits a playfield border, trigger explosion and transition to Game Over (do not merely clamp and continue).",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-obstacle-obstacle-collision-response-when-two-obstacles-collide-overlap-reflect-them-so-they-move-away-from-each-other-swap-reflect-velocity-components-to-produce-an-opposite-direction-bounce-while-keeping-them-within-the-playfield-bounds",
+      "title": "Add obstacle-obstacle collision response: when two obstacles collide/overlap, reflect them so they move away from each other (swap/reflect velocity components to produce an opposite-direction bounce) while keeping them within the playfield bounds.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-bullets-always-fire-and-travel-in-the-exact-direction-the-player-jet-is-currently-facing-at-the-moment-of-firing-including-correct-forward-spawn-offset-from-the-jet-nose-and-consistent-movement-direction-regardless-of-joystick-input-changes-after-firing",
+      "title": "Ensure bullets always fire and travel in the exact direction the player jet is currently facing at the moment of firing, including correct forward spawn offset from the jet nose and consistent movement direction regardless of joystick input changes after firing.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-obstacle-rendering-to-a-clear-hexagon-shape-no-square-diamond-silhouette-while-preserving-the-existing-position-system-percentage-based-positioning-and-keeping-the-current-arcade-orange-red-hazard-styling-and-glow-feel",
+      "title": "Update obstacle rendering to a clear hexagon shape (no square/diamond silhouette), while preserving the existing position system (percentage-based positioning) and keeping the current arcade orange/red hazard styling and glow feel.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-adjust-overall-game-sizing-for-small-mobile-screens-by-scaling-down-gameplay-entities-jet-bullets-obstacles-and-ui-controls-hud-fire-button-joystick-so-the-playfield-feels-less-crowded-and-fits-comfortably-on-typical-mobile-viewports-without-overlapping-or-clipping",
+      "title": "Adjust overall game sizing for small mobile screens by scaling down gameplay entities (jet, bullets, obstacles) and UI controls (HUD, FIRE button, joystick) so the playfield feels less crowded and fits comfortably on typical mobile viewports without overlapping or clipping.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -116,6 +251,66 @@
     {
       "id": "AR-6",
       "summary": "Improve overall UI/visual design to be more attractive for users (polished arcade-style theme).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Add virtual joystick movement controls: joystick-based movement with the jet facing the movement direction; place the joystick on the left and the fire button on the left (as requested).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Add moving obstacles that travel in a random zig-zag pattern within the playfield (with appropriate boundary/collision behavior).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Update shooting so bullets spawn from the jet’s face/nose (front side) based on its current facing/rotation direction.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Update player/obstacle UI visuals/structure (revise how the player and obstacles are visually presented).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Add explosion (bomb-like) effect and trigger Game Over when the player collides with an obstacle.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Add explosion effect and trigger Game Over when a bullet hits an obstacle.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Add explosion effect and trigger Game Over when the player hits the playfield borders/walls.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "When obstacles collide with each other, make them reflect/bounce and move in opposite directions (basic obstacle-obstacle collision response).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Update obstacle visuals so obstacles are rendered as a hexagon shape (consistent with the current theme).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Adjust overall entity/UI sizing and layout to better fit mobile screens (make everything smaller/more appropriately scaled for mobile).",
       "reqIds": [],
       "status": "pending"
     }

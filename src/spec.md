@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Replace the player jet sprite with a non-image rendered jet, add bullet firing controls/mechanics, and polish the in-game UI while keeping the existing orange/red arcade theme.
+**Goal:** Improve shooting accuracy, obstacle clarity, and overall usability on small mobile screens.
 
 **Planned changes:**
-- Replace the player jet rendering to use non-image primitives (e.g., HTML/CSS shapes and/or inline SVG), keeping the same percent-based positioning and smooth movement, and adding a recognizable jet look with a glow/thruster effect.
-- Add shooting mechanics: spawn bullets from the jet’s forward tip during the `playing` state, move bullets forward/upward, and remove bullets when they leave the playfield.
-- Add a mobile-friendly on-screen fire control that does not interfere with drag-to-move, and ensure firing is disabled when `idle` or `paused`.
-- Improve UI presentation: polish start/pause/resume/restart overlays (layout/typography/depth) and add a lightweight HUD element, keeping all user-facing text in English and maintaining the orange/red theme dominance.
+- Fix bullet spawning and movement so each bullet spawns from the jet’s nose and travels in the jet’s facing direction at the instant of firing, without being affected by later joystick changes.
+- Redesign obstacle visuals to render as a clear six-sided hexagon shape while keeping the current orange/red hazard glow styling and the existing percentage-based positioning/movement logic.
+- Scale down gameplay entities (jet, bullets, obstacles) and UI controls (HUD, FIRE button, joystick) for better fit on typical mobile viewports, and adjust hitboxes to match the new visual sizes.
 
-**User-visible outcome:** The player controls a smoothly moving, non-image jet with glow effects, can fire bullets via a mobile-friendly control during gameplay, and sees a more polished arcade-style UI with improved overlays and a small in-game HUD.
+**User-visible outcome:** Bullets shoot straight from the jet’s nose in the correct direction, obstacles look like glowing orange/red hexagons, and the game feels less crowded and more comfortable to play on mobile without UI overlap or clipping.

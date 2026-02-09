@@ -1,85 +1,89 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Arcade jet primitives, bullet firing, and UI polish",
+  "title": "Jet Rush: bullet direction fix, hexagon obstacles, and mobile-friendly scaling",
   "requirements": [
     {
-      "id": "REQ-7",
-      "summary": "Replace the player jet image sprite with non-image primitive rendering (inline SVG/CSS) while preserving the existing percent-based positioning and smooth movement.",
+      "id": "REQ-23",
+      "summary": "Make bullets spawn from the jet nose and travel in the exact facing direction captured at fire time, unaffected by later joystick changes.",
       "acceptanceCriteria": [
-        "The player jet is no longer rendered via an <img> tag or any raster image file (e.g., /assets/generated/jet-player.dim_256x256.png is not used by the jet).",
-        "The jet remains centered on the same percent-based position coordinates and continues to move smoothly as it does now.",
-        "The jet remains clearly recognizable as a jet/spacecraft and includes a visually appealing glow/thruster effect consistent with the existing arcade theme."
+        "When the jet rotates and the FIRE control is pressed, the bullet initial direction matches the jet facing direction at that instant.",
+        "Bullets do not drift toward a new direction when the player changes joystick direction after firing.",
+        "Bullets visibly originate from the front/nose of the jet (not from the center or side) across multiple facing angles (up/down/left/right/diagonal)."
       ],
       "file_operations": [
+        {
+          "path": "frontend/src/game/GameScreen.tsx",
+          "operation": "modify",
+          "description": "Capture firing snapshot reliably by storing latest player position and facing angle in refs (updated during movement), and use those refs inside the fire handler so bullet direction/spawn offset always match the jet at the moment of firing (independent of later joystick updates). Update bullet spawn offset logic so it is computed in a consistent forward direction from the jet nose for all angles, rather than relying on a fixed percentage that can misplace the spawn point across screen sizes."
+        },
+        {
+          "path": "frontend/src/game/entities/Bullet.tsx",
+          "operation": "modify",
+          "description": "Optionally align bullet visual orientation with its travel direction (e.g., accept a rotation/angle prop derived from bullet direction) so the projectile’s appearance matches its trajectory, while keeping percentage-based positioning and existing glow styling."
+        }
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "summary": "Redesign obstacles to render as a clear hexagon silhouette while preserving existing positioning/movement and the orange/red arcade hazard glow style.",
+      "acceptanceCriteria": [
+        "Each obstacle’s primary body silhouette is a hexagon (six sides) at all times.",
+        "Obstacle positioning still uses the same percentage-based left/top translate(-50%,-50%) approach and continues moving/colliding as before.",
+        "Obstacle visuals remain consistent with the current orange/red arcade theme (glow/high-contrast hazard look) and do not introduce blue/purple as primary colors."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/game/entities/Obstacle.tsx",
+          "operation": "modify",
+          "description": "Replace the current rotated square/diamond body with a true six-sided hexagon (e.g., SVG polygon or CSS clip-path polygon) and adapt inner frame/stripes/core/rings to match the hex geometry. Keep the same absolute positioning style (left/top in %, translate(-50%,-50%)) and retain the existing orange/red hazard glow/contrast styling (no new primary blue/purple tones)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-25",
+      "summary": "Scale down gameplay entities and on-screen controls for small mobile viewports, updating hitboxes to match resized visuals and preventing UI overlap/clipping.",
+      "acceptanceCriteria": [
+        "On common mobile viewport sizes (e.g., ~360×640 CSS px), the jet, obstacles, and bullets appear noticeably smaller than before and remain easy to visually track.",
+        "The FIRE button and joystick do not overlap each other or cover critical playfield content; both remain easy to press.",
+        "Top HUD elements do not collide with borders or overlap the playfield content excessively on small screens.",
+        "Collision behavior remains consistent with the resized visuals (hitboxes updated to match new apparent sizes so collisions feel fair)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/game/GameScreen.tsx",
+          "operation": "modify",
+          "description": "Introduce responsive sizing constants (or scale factors derived from measured playfield/container size) for jet/bullet/obstacle render sizes and collision radii. Update collision and bounds checks (JET_SIZE, OBSTACLE_SIZE, BULLET_SIZE) and bullet spawn offset so hitboxes remain consistent with the new, smaller visuals on mobile while preserving gameplay feel."
+        },
         {
           "path": "frontend/src/game/entities/PlayerJet.tsx",
           "operation": "modify",
-          "description": "Replace the <img> sprite with a non-image implementation (e.g., inline SVG + div layers) that keeps the same absolute positioning (left/top percent + translate(-50%, -50%)) and pointer-events-none behavior; add a recognizable jet silhouette, canopy, and a glow/thruster effect without referencing /assets/generated/jet-player.dim_256x256.png. Verify the component's usage instructions before implementing."
+          "description": "Reduce jet render size on small screens using responsive Tailwind sizing (and any needed minor visual tweaks) so the playfield is less crowded while keeping the existing SVG jet design and rotations intact."
         },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Add/adjust arcade-themed utility classes/animations to support the new primitive jet rendering (e.g., thruster flicker, glow pulse, heat haze) while keeping orange/red as the dominant palette and ensuring effects remain readable on mobile. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "summary": "Add client-side bullet firing mechanics with mobile-friendly on-screen fire control, including spawn at jet nose, movement, and cleanup outside the playfield.",
-      "acceptanceCriteria": [
-        "While gameState is 'playing', the user can trigger firing bullets via a mobile-friendly on-screen control (and it must not interfere with the existing drag-to-move interaction).",
-        "Bullets visibly originate from the jet’s nose (or forward tip) and travel upward/forward within the playfield.",
-        "Bullets are removed once they exit the visible playfield bounds (no unbounded growth in bullet count during sustained firing).",
-        "Firing is disabled (no new bullets spawn) when the gameState is 'idle' or 'paused'."
-      ],
-      "file_operations": [
         {
           "path": "frontend/src/game/entities/Bullet.tsx",
-          "operation": "create",
-          "description": "Create a Bullet entity renderer using non-image primitives (e.g., small glowing div or inline SVG) designed to read well over the playfield grid and match the arcade orange/red theme. Verify the component's usage instructions before implementing."
+          "operation": "modify",
+          "description": "Reduce bullet visual dimensions on small screens (core/trail) using responsive Tailwind sizing so projectiles are proportionate to the resized jet and obstacles, while preserving the current arcade glow style."
         },
         {
-          "path": "frontend/src/game/GameScreen.tsx",
+          "path": "frontend/src/game/entities/Obstacle.tsx",
           "operation": "modify",
-          "description": "Implement bullet state and mechanics: spawn bullets only when gameState is 'playing', position new bullets at the jet’s forward tip, advance bullets upward per animation frame (or timed loop), and remove bullets once outside playfield bounds; render bullets inside <Playfield> alongside <PlayerJet> and ensure bullet count remains bounded during sustained fire. Verify the component's usage instructions before implementing."
+          "description": "Scale down obstacle visual size on small screens (hexagon body and glow/rings) to match the updated collision sizing and improve readability on mobile."
         },
         {
           "path": "frontend/src/game/ui/GameOverlay.tsx",
           "operation": "modify",
-          "description": "Add a mobile-friendly on-screen FIRE control shown only while playing; ensure it does not interfere with existing drag-to-move (e.g., by stopping propagation/capturing pointer events on the button area) and wire it to GameScreen’s fire handler; ensure firing is not possible in idle/paused. Verify the component's usage instructions before implementing."
+          "description": "Adjust HUD and control layout/sizing for small viewports: reduce top HUD padding/font sizes, reposition or tighten bottom control offsets, and shrink the FIRE button so it stays comfortably tappable without overlapping the joystick or covering critical playfield content."
         },
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/game/ui/VirtualJoystick.tsx",
           "operation": "modify",
-          "description": "Add styling utilities/animations for bullets (glow, streak, subtle motion blur feel) and for the fire control’s pressed/active states, consistent with the orange/red arcade theme. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-9",
-      "summary": "Polish the in-game UI: improve start/pause/resume/restart overlays and add a lightweight HUD element while keeping the orange/red arcade theme and English-only strings.",
-      "acceptanceCriteria": [
-        "Start and pause overlays look more polished (typography hierarchy, spacing, depth effects) while remaining readable on mobile screens.",
-        "In-game UI is upgraded with at least one lightweight HUD element (e.g., a compact firing indicator/cooldown, bullets count, or minimal status strip) without cluttering the playfield.",
-        "Visual enhancements do not introduce blue/purple as the primary palette; the existing arcade orange/red theme remains dominant.",
-        "All user-facing strings are in English."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/game/ui/GameOverlay.tsx",
-          "operation": "modify",
-          "description": "Upgrade overlay presentation (layout, typography hierarchy, depth/glow effects) for start and pause screens while keeping all strings in English; add a compact HUD element during play (e.g., bullets on-screen count and/or a simple fire cooldown/ready indicator) positioned to avoid clutter and remain mobile-readable. If adopting shadcn-ui components (e.g., Button) for consistency, compose them without modifying files under frontend/src/components/ui. Verify the component's usage instructions before implementing."
+          "description": "Scale the joystick base/knob down for mobile (responsive Tailwind sizing) while maintaining accurate vector output; ensure the maxDistance/knob constraints continue to feel responsive at the new size."
         },
         {
-          "path": "frontend/src/game/GameScreen.tsx",
+          "path": "frontend/src/game/Playfield.tsx",
           "operation": "modify",
-          "description": "Provide overlay/HUD with the minimal derived state it needs (e.g., bullets currently on-screen, optional cooldown/ready flag) so the HUD can render a lightweight status indicator without affecting gameplay responsiveness. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Refine arcade UI styling tokens/utilities to support improved overlays and HUD (panel gradients, subtle scanline/noise feel via CSS, readable mobile spacing) while keeping orange/red dominant and avoiding blue/purple as primary colors. Verify the component's usage instructions before implementing."
+          "description": "Reduce playfield padding/border/accent sizing responsively (e.g., smaller padding on mobile) to maximize usable play area and avoid HUD/controls clipping against the container edges while keeping the existing theme and structure."
         }
       ]
     }

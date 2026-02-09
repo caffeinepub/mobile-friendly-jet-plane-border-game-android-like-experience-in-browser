@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-09T10:13:16.303Z",
+  "generatedAt": "2026-02-09T12:13:45.116Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,63 +11,66 @@
     "implemented": 3,
     "items": [
       {
-        "id": "REQ-7",
-        "summary": "Replace the player jet rendering so it is not an image asset: update the player entity to be drawn using non-image primitives (e.g., HTML/CSS shapes and/or inline SVG) while preserving the current positioning and movement behavior.",
+        "id": "REQ-23",
+        "summary": "Ensure bullets always fire and travel in the exact direction the player jet is currently facing at the moment of firing, including correct forward spawn offset from the jet nose and consistent movement direction regardless of joystick input changes after firing.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/game/entities/PlayerJet.tsx",
-          "frontend/src/index.css"
+          "frontend/src/game/GameScreen.tsx",
+          "frontend/src/game/entities/Bullet.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/game/entities/PlayerJet.tsx",
-          "frontend/src/index.css"
+          "frontend/src/game/GameScreen.tsx",
+          "frontend/src/game/entities/Bullet.tsx"
         ]
       },
       {
-        "id": "REQ-8",
-        "summary": "Implement shooting mechanics so the player jet can produce/fire bullets during gameplay, including bullet spawning, forward movement, and cleanup when bullets leave the playfield. Provide a mobile-friendly control for firing bullets while the game is in the 'playing' state.",
+        "id": "REQ-24",
+        "summary": "Update obstacle rendering to a clear hexagon shape (no square/diamond silhouette), while preserving the existing position system (percentage-based positioning) and keeping the current arcade orange/red hazard styling and glow feel.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/game/entities/Bullet.tsx",
-          "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/ui/GameOverlay.tsx",
-          "frontend/src/index.css"
+          "frontend/src/game/entities/Obstacle.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/game/entities/Bullet.tsx",
-          "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/ui/GameOverlay.tsx",
-          "frontend/src/index.css"
+          "frontend/src/game/entities/Obstacle.tsx"
         ]
       },
       {
-        "id": "REQ-9",
-        "summary": "Improve the overall in-game UI/visual presentation to be more amazing and attractive, enhancing the start/pause/resume/restart overlays and in-game HUD while staying consistent with the existing orange/red arcade theme and keeping all user-facing text in English.",
+        "id": "REQ-25",
+        "summary": "Adjust overall game sizing for small mobile screens by scaling down gameplay entities (jet, bullets, obstacles) and UI controls (HUD, FIRE button, joystick) so the playfield feels less crowded and fits comfortably on typical mobile viewports without overlapping or clipping.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/game/ui/GameOverlay.tsx",
           "frontend/src/game/GameScreen.tsx",
-          "frontend/src/index.css"
+          "frontend/src/game/entities/PlayerJet.tsx",
+          "frontend/src/game/entities/Bullet.tsx",
+          "frontend/src/game/entities/Obstacle.tsx",
+          "frontend/src/game/ui/GameOverlay.tsx",
+          "frontend/src/game/ui/VirtualJoystick.tsx",
+          "frontend/src/game/Playfield.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/game/ui/GameOverlay.tsx",
           "frontend/src/game/GameScreen.tsx",
-          "frontend/src/index.css"
+          "frontend/src/game/entities/PlayerJet.tsx",
+          "frontend/src/game/entities/Bullet.tsx",
+          "frontend/src/game/entities/Obstacle.tsx",
+          "frontend/src/game/ui/GameOverlay.tsx",
+          "frontend/src/game/ui/VirtualJoystick.tsx",
+          "frontend/src/game/Playfield.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "build-request.json",
-    "build-template/README.md",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/game/GameScreen.tsx",
+    "frontend/src/game/Playfield.tsx",
     "frontend/src/game/entities/Bullet.tsx",
+    "frontend/src/game/entities/Obstacle.tsx",
     "frontend/src/game/entities/PlayerJet.tsx",
     "frontend/src/game/ui/GameOverlay.tsx",
-    "frontend/src/index.css",
+    "frontend/src/game/ui/VirtualJoystick.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

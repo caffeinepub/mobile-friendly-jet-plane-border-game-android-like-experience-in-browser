@@ -114,4 +114,104 @@
     .jet-thruster {
         animation: thruster-flicker 0.15s ease-in-out infinite;
     }
+    
+    /* Explosion animations */
+    @keyframes explosion-flash {
+        0% { opacity: 1; transform: scale(0.5); }
+        20% { opacity: 1; transform: scale(1.2); }
+        40% { opacity: 0.8; transform: scale(1); }
+        100% { opacity: 0; transform: scale(1.5); }
+    }
+    
+    @keyframes explosion-blast {
+        0% { opacity: 0.9; transform: scale(0.3); }
+        50% { opacity: 0.6; transform: scale(1.5); }
+        100% { opacity: 0; transform: scale(2.5); }
+    }
+    
+    @keyframes explosion-blast-delayed {
+        0% { opacity: 0; transform: scale(0.5); }
+        30% { opacity: 0.7; transform: scale(1); }
+        70% { opacity: 0.4; transform: scale(2); }
+        100% { opacity: 0; transform: scale(3); }
+    }
+    
+    @keyframes explosion-smoke {
+        0% { opacity: 0.6; transform: scale(0.8); }
+        100% { opacity: 0; transform: scale(2.5); }
+    }
+    
+    @keyframes explosion-ember-1 {
+        0% { opacity: 1; transform: translate(0, 0) scale(1); }
+        100% { opacity: 0; transform: translate(0, -60px) scale(0.3); }
+    }
+    
+    @keyframes explosion-ember-2 {
+        0% { opacity: 1; transform: translate(0, 0) scale(1); }
+        100% { opacity: 0; transform: translate(60px, 0) scale(0.3); }
+    }
+    
+    @keyframes explosion-ember-3 {
+        0% { opacity: 1; transform: translate(0, 0) scale(1); }
+        100% { opacity: 0; transform: translate(0, 60px) scale(0.3); }
+    }
+    
+    @keyframes explosion-ember-4 {
+        0% { opacity: 1; transform: translate(0, 0) scale(1); }
+        100% { opacity: 0; transform: translate(-60px, 0) scale(0.3); }
+    }
+    
+    @keyframes explosion-ember-5 {
+        0% { opacity: 1; transform: translate(0, 0) scale(1); }
+        100% { opacity: 0; transform: translate(40px, -40px) scale(0.2); }
+    }
+    
+    @keyframes explosion-ember-6 {
+        0% { opacity: 1; transform: translate(0, 0) scale(1); }
+        100% { opacity: 0; transform: translate(-40px, 40px) scale(0.2); }
+    }
+    
+    .animate-explosion-flash {
+        animation: explosion-flash 0.4s ease-out forwards;
+    }
+    
+    .animate-explosion-blast {
+        animation: explosion-blast 0.6s ease-out forwards;
+    }
+    
+    .animate-explosion-blast-delayed {
+        animation: explosion-blast-delayed 0.8s ease-out 0.1s forwards;
+    }
+    
+    .animate-explosion-smoke {
+        animation: explosion-smoke 0.8s ease-out 0.2s forwards;
+    }
+    
+    .animate-explosion-ember-1 {
+        animation: explosion-ember-1 0.7s ease-out forwards;
+    }
+    
+    .animate-explosion-ember-2 {
+        animation: explosion-ember-2 0.7s ease-out 0.05s forwards;
+    }
+    
+    .animate-explosion-ember-3 {
+        animation: explosion-ember-3 0.7s ease-out 0.1s forwards;
+    }
+    
+    .animate-explosion-ember-4 {
+        animation: explosion-ember-4 0.7s ease-out 0.15s forwards;
+    }
+    
+    .animate-explosion-ember-5 {
+        animation: explosion-ember-5 0.6s ease-out 0.08s forwards;
+    }
+    
+    .animate-explosion-ember-6 {
+        animation: explosion-ember-6 0.6s ease-out 0.12s forwards;
+    }
+    
+    .bg-gradient-radial {
+        background-image: radial-gradient(circle, var(--tw-gradient-stops));
+    }
 }

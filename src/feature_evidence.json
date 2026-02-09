@@ -2,11 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-replace-the-player-jet-rendering-so-it-is-not-an-image-asset-update-the-player-entity-to-be-drawn-using-non-image-primitives-e-g-html-css-shapes-and-or-inline-svg-while-preserving-the-current-positioning-and-movement-behavior",
-      "featureTitle": "Replace the player jet rendering so it is not an image asset: update the player entity to be drawn using non-image primitives (e.g., HTML/CSS shapes and/or inline SVG) while preserving the current positioning and movement behavior.",
+      "featureId": "feature-ensure-bullets-always-fire-and-travel-in-the-exact-direction-the-player-jet-is-currently-facing-at-the-moment-of-firing-including-correct-forward-spawn-offset-from-the-jet-nose-and-consistent-movement-direction-regardless-of-joystick-input-changes-after-firing",
+      "featureTitle": "Ensure bullets always fire and travel in the exact direction the player jet is currently facing at the moment of firing, including correct forward spawn offset from the jet nose and consistent movement direction regardless of joystick input changes after firing.",
       "files": [
-        "frontend/src/game/entities/PlayerJet.tsx",
-        "frontend/src/index.css"
+        "frontend/src/game/GameScreen.tsx",
+        "frontend/src/game/entities/Bullet.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -16,18 +16,39 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-7"
+        "REQ-23"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-shooting-mechanics-so-the-player-jet-can-produce-fire-bullets-during-gameplay-including-bullet-spawning-forward-movement-and-cleanup-when-bullets-leave-the-playfield-provide-a-mobile-friendly-control-for-firing-bullets-while-the-game-is-in-the-playing-state",
-      "featureTitle": "Implement shooting mechanics so the player jet can produce/fire bullets during gameplay, including bullet spawning, forward movement, and cleanup when bullets leave the playfield. Provide a mobile-friendly control for firing bullets while the game is in the 'playing' state.",
+      "featureId": "feature-update-obstacle-rendering-to-a-clear-hexagon-shape-no-square-diamond-silhouette-while-preserving-the-existing-position-system-percentage-based-positioning-and-keeping-the-current-arcade-orange-red-hazard-styling-and-glow-feel",
+      "featureTitle": "Update obstacle rendering to a clear hexagon shape (no square/diamond silhouette), while preserving the existing position system (percentage-based positioning) and keeping the current arcade orange/red hazard styling and glow feel.",
+      "files": [
+        "frontend/src/game/entities/Obstacle.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-24"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-adjust-overall-game-sizing-for-small-mobile-screens-by-scaling-down-gameplay-entities-jet-bullets-obstacles-and-ui-controls-hud-fire-button-joystick-so-the-playfield-feels-less-crowded-and-fits-comfortably-on-typical-mobile-viewports-without-overlapping-or-clipping",
+      "featureTitle": "Adjust overall game sizing for small mobile screens by scaling down gameplay entities (jet, bullets, obstacles) and UI controls (HUD, FIRE button, joystick) so the playfield feels less crowded and fits comfortably on typical mobile viewports without overlapping or clipping.",
       "files": [
         "frontend/src/game/GameScreen.tsx",
+        "frontend/src/game/Playfield.tsx",
         "frontend/src/game/entities/Bullet.tsx",
+        "frontend/src/game/entities/Obstacle.tsx",
+        "frontend/src/game/entities/PlayerJet.tsx",
         "frontend/src/game/ui/GameOverlay.tsx",
-        "frontend/src/index.css"
+        "frontend/src/game/ui/VirtualJoystick.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -37,27 +58,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-8"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-improve-the-overall-in-game-ui-visual-presentation-to-be-more-amazing-and-attractive-enhancing-the-start-pause-resume-restart-overlays-and-in-game-hud-while-staying-consistent-with-the-existing-orange-red-arcade-theme-and-keeping-all-user-facing-text-in-english",
-      "featureTitle": "Improve the overall in-game UI/visual presentation to be more amazing and attractive, enhancing the start/pause/resume/restart overlays and in-game HUD while staying consistent with the existing orange/red arcade theme and keeping all user-facing text in English.",
-      "files": [
-        "frontend/src/game/GameScreen.tsx",
-        "frontend/src/game/ui/GameOverlay.tsx",
-        "frontend/src/index.css"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-9"
+        "REQ-25"
       ],
       "confidence": "high"
     }

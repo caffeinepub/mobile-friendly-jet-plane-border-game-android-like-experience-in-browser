@@ -1,12 +1,15 @@
 {
   "frontend/src/App.tsx": "Root application component that renders the full-screen game container with the GameScreen component.",
-  "frontend/src/game/GameScreen.tsx": "Main game controller managing game state, player position, bullet spawning/movement/cleanup, touch input, fire cooldown, and animation loop with boundary enforcement.",
-  "frontend/src/game/Playfield.tsx": "Renders the bordered game area with four visible borders, corner accents, and a grid pattern overlay for visual depth.",
-  "frontend/src/game/entities/PlayerJet.tsx": "Player jet entity rendered using SVG primitives with fuselage, wings, cockpit canopy, and animated thruster glow effects in the arcade orange/red theme.",
-  "frontend/src/game/ui/GameOverlay.tsx": "Polished game UI overlay system with gradient-enhanced start/pause screens, in-game HUD showing bullet count, pause button, and mobile-friendly fire control with proper event handling.",
-  "frontend/src/game/physics/bounds.ts": "Utility function to clamp player position within playfield boundaries accounting for entity size.",
-  "frontend/src/index.css": "Global styles with arcade-themed orange/red OKLCH color system, custom game shadows, typography, and jet thruster flicker animation.",
+  "frontend/src/game/GameScreen.tsx": "Main game controller with refs to capture player position and facing angle at fire time for accurate bullet direction, reduced entity sizes for mobile (JET_SIZE=40, OBSTACLE_SIZE=24, BULLET_SIZE=6), and bullet data now includes rotation angle for visual alignment.",
+  "frontend/src/game/Playfield.tsx": "Playfield container with responsive border thickness (border-4 to border-[6px]) and padding (p-4 to p-10) to maximize usable play area on mobile while preserving the bordered arcade aesthetic.",
+  "frontend/src/game/entities/PlayerJet.tsx": "Player jet SVG component with responsive sizing (w-20 to w-28 across breakpoints) to appear smaller on mobile while maintaining the existing angular design and thruster effects.",
+  "frontend/src/game/ui/GameOverlay.tsx": "Game UI overlay with responsive sizing for all screens (start/pause/gameover), HUD elements, and controls; reduced padding and font sizes on mobile to prevent overlap while keeping FIRE button and joystick easily tappable.",
+  "frontend/src/game/physics/bounds.ts": "Utility functions for position clamping, velocity reflection at boundaries, and out-of-bounds detection for percentage-based entity movement.",
+  "frontend/src/index.css": "Global styles with arcade-themed OKLCH color system, jet thruster animation, and comprehensive explosion keyframe animations for flash, blast waves, embers, and smoke effects.",
   "frontend/tailwind.config.js": "Tailwind configuration extended with game-specific color tokens (game-primary, game-border, game-field, etc.) for consistent theming.",
   "frontend/src/hooks/useQueries.ts": "Placeholder file for React Query hooks; intentionally minimal as game state is fully client-side.",
-  "frontend/src/game/entities/Bullet.tsx": "Bullet entity component rendered as a glowing projectile using div primitives with gradient core, glow effect, and trailing effect matching the arcade theme."
+  "frontend/src/game/entities/Bullet.tsx": "Bullet component with rotation prop to align visual orientation with travel direction, and responsive sizing (w-2 h-5 to w-2.5 h-6) for mobile-friendly display.",
+  "frontend/src/game/ui/VirtualJoystick.tsx": "Virtual joystick with responsive sizing (w-24 to w-32 across breakpoints) for mobile-friendly touch control while maintaining accurate directional input and visual feedback.",
+  "frontend/src/game/entities/Obstacle.tsx": "Obstacle redesigned as a true hexagon (six-sided polygon) using SVG with flat-top orientation, hazard stripes, pulsing core, and warning rings, maintaining orange/red arcade theme with responsive sizing for mobile.",
+  "frontend/src/game/effects/Explosion.tsx": "Non-image explosion effect component with flash, blast waves, embers, and smoke rendered at percentage-based coordinates with time-bounded animations and pointer-events disabled."
 }

@@ -1,74 +1,72 @@
 {
   "kind": "build_request",
-  "title": "Replace jet sprite with non-image rendering, add bullet firing, and polish the game UI",
+  "title": "Fix bullet direction, redesign obstacles as hexagons, and scale UI/entities for better mobile fit",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-7",
-      "text": "Replace the player jet rendering so it is not an image asset: update the player entity to be drawn using non-image primitives (e.g., HTML/CSS shapes and/or inline SVG) while preserving the current positioning and movement behavior.",
+      "id": "REQ-23",
+      "text": "Ensure bullets always fire and travel in the exact direction the player jet is currently facing at the moment of firing, including correct forward spawn offset from the jet nose and consistent movement direction regardless of joystick input changes after firing.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-1"
         ],
         "quotes": [
-          "jet should not be image."
+          "bullets should be in proper direction"
         ]
       },
       "acceptanceCriteria": [
-        "The player jet is no longer rendered via an <img> tag or any raster image file (e.g., /assets/generated/jet-player.dim_256x256.png is not used by the jet).",
-        "The jet remains centered on the same percent-based position coordinates and continues to move smoothly as it does now.",
-        "The jet remains clearly recognizable as a jet/spacecraft and includes a visually appealing glow/thruster effect consistent with the existing arcade theme."
+        "When the jet rotates and the FIRE control is pressed, the bullet initial direction matches the jet facing direction at that instant.",
+        "Bullets do not drift toward a new direction when the player changes joystick direction after firing.",
+        "Bullets visibly originate from the front/nose of the jet (not from the center or side) across multiple facing angles (up/down/left/right/diagonal)."
       ]
     },
     {
-      "id": "REQ-8",
-      "text": "Implement shooting mechanics so the player jet can produce/fire bullets during gameplay, including bullet spawning, forward movement, and cleanup when bullets leave the playfield. Provide a mobile-friendly control for firing bullets while the game is in the 'playing' state.",
+      "id": "REQ-24",
+      "text": "Update obstacle rendering to a clear hexagon shape (no square/diamond silhouette), while preserving the existing position system (percentage-based positioning) and keeping the current arcade orange/red hazard styling and glow feel.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-1"
         ],
         "quotes": [
-          "and also it should produces the bullets"
+          "make obstacle hexagon shape"
         ]
       },
       "acceptanceCriteria": [
-        "While gameState is 'playing', the user can trigger firing bullets via a mobile-friendly on-screen control (and it must not interfere with the existing drag-to-move interaction).",
-        "Bullets visibly originate from the jet’s nose (or forward tip) and travel upward/forward within the playfield.",
-        "Bullets are removed once they exit the visible playfield bounds (no unbounded growth in bullet count during sustained firing).",
-        "Firing is disabled (no new bullets spawn) when the gameState is 'idle' or 'paused'."
+        "Each obstacle’s primary body silhouette is a hexagon (six sides) at all times.",
+        "Obstacle positioning still uses the same percentage-based left/top translate(-50%,-50%) approach and continues moving/colliding as before.",
+        "Obstacle visuals remain consistent with the current orange/red arcade theme (glow/high-contrast hazard look) and do not introduce blue/purple as primary colors."
       ]
     },
     {
-      "id": "REQ-9",
-      "text": "Improve the overall in-game UI/visual presentation to be more amazing and attractive, enhancing the start/pause/resume/restart overlays and in-game HUD while staying consistent with the existing orange/red arcade theme and keeping all user-facing text in English.",
+      "id": "REQ-25",
+      "text": "Adjust overall game sizing for small mobile screens by scaling down gameplay entities (jet, bullets, obstacles) and UI controls (HUD, FIRE button, joystick) so the playfield feels less crowded and fits comfortably on typical mobile viewports without overlapping or clipping.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-1"
         ],
         "quotes": [
-          "it should look amazing attractive UI design for user"
+          "every thing should be small to look in mobile device proper"
         ]
       },
       "acceptanceCriteria": [
-        "Start and pause overlays look more polished (typography hierarchy, spacing, depth effects) while remaining readable on mobile screens.",
-        "In-game UI is upgraded with at least one lightweight HUD element (e.g., a compact firing indicator/cooldown, bullets count, or minimal status strip) without cluttering the playfield.",
-        "Visual enhancements do not introduce blue/purple as the primary palette; the existing arcade orange/red theme remains dominant.",
-        "All user-facing strings are in English."
+        "On common mobile viewport sizes (e.g., ~360×640 CSS px), the jet, obstacles, and bullets appear noticeably smaller than before and remain easy to visually track.",
+        "The FIRE button and joystick do not overlap each other or cover critical playfield content; both remain easy to press.",
+        "Top HUD elements do not collide with borders or overlap the playfield content excessively on small screens.",
+        "Collision behavior remains consistent with the resized visuals (hitboxes updated to match new apparent sizes so collisions feel fair)."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui or other immutable paths listed in SYSTEM_CONTEXT; compose existing UI components instead.",
-    "Keep the backend as a single Motoko actor (backend/main.mo). No new backend services.",
-    "Do not route any game visuals through the backend; keep gameplay client-side as it is now."
+    "Frontend must remain React + TypeScript + Tailwind and continue using the existing component structure (e.g., GameScreen, entities, overlay).",
+    "Do not edit any files under frontend/src/components/ui or other immutable paths listed in SYSTEM_CONTEXT.",
+    "Keep all user-facing text in English."
   ],
   "nonGoals": [
-    "Adding enemies, collisions with enemies, scoring/leaderboards, or level progression (not requested).",
-    "Adding third-party authentication providers beyond Internet Identity.",
-    "Adding multiplayer or real-time networking."
+    "Adding new gameplay modes, scoring systems, power-ups, or new entity types beyond resizing and obstacle shape changes.",
+    "Backend (Motoko) changes or persistence; this request is frontend-only."
   ],
   "imageRequirements": {
     "required": [],
