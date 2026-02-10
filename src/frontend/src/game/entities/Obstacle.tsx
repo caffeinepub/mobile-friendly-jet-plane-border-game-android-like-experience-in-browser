@@ -1,3 +1,5 @@
+import ObstacleSparks from '../effects/ObstacleSparks';
+
 type ObstacleSize = 'small' | 'medium' | 'large';
 
 interface ObstacleProps {
@@ -28,6 +30,9 @@ export default function Obstacle({ position, size, isBoss = false }: ObstaclePro
           transform: `scale(${sizeScale})`,
         }}
       >
+        {/* Spark effect overlay */}
+        <ObstacleSparks isBoss={isBoss} />
+        
         {/* Hexagon obstacle with orange/red hazard theme */}
         <svg
           viewBox="0 0 100 100"

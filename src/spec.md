@@ -1,10 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Keep obstacles visible through the time-expired transition and show a distinct "TIME UP!" game-over message when the level timer reaches 0.
+**Goal:** Add spark-like particle burst visual effects for bullet impacts, boss deaths, and player collision deaths without changing gameplay.
 
 **Planned changes:**
-- Adjust the playfield rendering/state transition so regular obstacles and the boss obstacle remain rendered (with boss red styling) when the timer hits 0, during the 'exploding' transition, until the game-over UI takes over.
-- Add a distinct "time expired" game-over reason and update the game-over overlay messaging to display "TIME UP!" only when the timer reaches 0 (and not for other loss conditions).
+- Create a reusable spark-burst effect component that can be spawned at a given (x%, y%) position with a tunable intensity/variant and that self-terminates after a short lifetime without per-frame React state updates.
+- Trigger a spark burst once per bullet→obstacle collision at the impact position while preserving existing hit behavior.
+- Trigger a higher-intensity spark burst once when a boss obstacle is destroyed/removed at its death position.
+- Trigger a spark burst once when the player dies due to obstacle collision or border collision, alongside the existing player explosion/game-over flow.
 
-**User-visible outcome:** When the countdown reaches 0, obstacles (including the boss) remain visible during the transition to game over, and the game-over overlay clearly displays "TIME UP!".
+**User-visible outcome:** Spark particle bursts appear on bullet hits, on boss destruction (stronger burst), and when the player dies from obstacle/border collisions, while the rest of the game behavior remains the same.

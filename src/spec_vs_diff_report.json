@@ -1,37 +1,64 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T14:16:17.503Z",
-  "summary": "REQ-6 and REQ-7 appear to be implemented via a new time-expired game-over reason and UI messaging, plus changes intended to keep obstacles (including boss obstacles) rendered during the 'exploding' transition when time reaches 0. However, the diff also includes several unrelated gameplay-tuning and documentation/state-file changes not requested.",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-10T16:30:10.315Z",
+  "summary": "SparkBurst effect component was added and global CSS animations for spark bursts were introduced, but the diff does not provide sufficient code evidence that spark bursts are actually spawned on bullet→obstacle hits, boss deaths, or player death collisions. Additionally, SparkBurst’s lifetime handling uses an unscoped setTimeout in render, which risks timer leaks and repeated scheduling.",
+  "missing_requirements": [
     {
-      "description": "Gameplay tuning changes unrelated to obstacle visibility at time end or displaying a 'TIME UP!' message (e.g., jet/bullet/obstacle constants like size, speed, cooldown).",
-      "reason": "BuildRequest is narrowly focused on obstacle visibility during time-expired transitions and adding a time-expired reason/message; it does not request balance or tuning adjustments.",
+      "id": "REQ-3",
+      "requirement": "Spark-burst effect must self-terminate without leaking timers/intervals.",
+      "reason": "SparkBurst schedules a setTimeout directly during render whenever onComplete is provided, with no cleanup (e.g., useEffect return) and can schedule multiple timers across re-renders.",
       "evidence": [
-        "frontend/src/game/GameScreen.tsx (constants: JET_SIZE, BULLET_SPEED, FIRE_COOLDOWN, BASE_MOVEMENT_SPEED, OBSTACLE_SPEED, etc.)"
+        "frontend/src/game/effects/SparkBurst.tsx"
       ]
     },
     {
-      "description": "Updates to project tracking/state file (adding AR-1/AR-2 entries marked pending).",
-      "reason": "BuildRequest does not request changes to project_state.json or any project-management metadata.",
+      "id": "REQ-4",
+      "requirement": "On bullet→obstacle collision, spawn a spark-burst once per collision event at the impact position, while preserving existing hit behavior.",
+      "reason": "GameScreen is truncated before any collision-handling/spawn logic is shown; only the SparkBurst import and some constants/types are visible, so the actual trigger-on-hit behavior is not evidenced in the diff excerpt.",
       "evidence": [
-        "project_state.json"
+        "frontend/src/game/GameScreen.tsx"
       ]
     },
     {
-      "description": "Broad claims/notes about many other frontend files and features (tailwind tokens, physics helpers, joystick deadzone, explosion variants, etc.) beyond the requested fix scope.",
-      "reason": "These are not requested features; even if they are only documentation, they introduce unrelated feature descriptions into the repo via the modified summary file.",
+      "id": "REQ-5",
+      "requirement": "On boss obstacle death/removal, spawn a higher-intensity (boss) spark burst once at the boss position.",
+      "reason": "No boss-death hook/spawn code is visible in the provided GameScreen diff excerpt (file is truncated), so this behavior cannot be verified from the diff summary.",
       "evidence": [
-        "frontend-file-summaries.txt"
+        "frontend/src/game/GameScreen.tsx"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "requirement": "On player death caused by obstacle collision or border collision, spawn a spark burst at collision position/time in addition to existing player explosion, without changing game-over flow.",
+      "reason": "No player-death collision/border-detection spawn code is visible in the provided GameScreen diff excerpt (file is truncated). Import of isAtBorder suggests intent, but the actual spawning and sequencing with existing explosion/gameover flow is not evidenced.",
+      "evidence": [
+        "frontend/src/game/GameScreen.tsx"
       ]
     }
   ],
-  "confidence": 0.67,
+  "hallucinated_features": [
+    {
+      "description": "Added/expanded global arcade theme styling and various non-requested CSS utilities/overrides (e.g., OKLCH theme variables, game-specific shadows, white progress bar overrides).",
+      "reason": "The BuildRequest is strictly for adding spark particle bursts; theme-wide styling changes are not requested and risk unintended UI changes.",
+      "evidence": [
+        "frontend/src/index.css"
+      ]
+    },
+    {
+      "description": "Added additional CSS animations for “spark effect animations for obstacles” (sparkFlicker/sparkPulse) beyond the requested impact/death/player spark-burst feature.",
+      "reason": "Request is specifically for spark burst effects on impacts/deaths/collisions; obstacle idle/overlay spark animations were not requested.",
+      "evidence": [
+        "frontend/src/index.css"
+      ]
+    }
+  ],
+  "confidence": 0.62,
   "changed_files": [
     "frontend-file-summaries.txt",
     "frontend/src/game/GameScreen.tsx",
-    "frontend/src/game/ui/GameOverlay.tsx",
+    "frontend/src/game/effects/SparkBurst.tsx",
+    "frontend/src/index.css",
     "project_state.json"
   ]
 }

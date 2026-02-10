@@ -4,6 +4,7 @@ import PlayerJet from './entities/PlayerJet';
 import Bullet from './entities/Bullet';
 import Obstacle from './entities/Obstacle';
 import Explosion from './effects/Explosion';
+import SparkBurst from './effects/SparkBurst';
 import GameOverlay from './ui/GameOverlay';
 import { clampPosition, reflectAtBounds, isOutOfBounds, isAtBorder } from './physics/bounds';
 import { angleToForwardVector, pixelVelocityToPercent, offsetPosition } from './physics/vectors';
@@ -33,9 +34,6 @@ interface ObstacleData {
   id: number;
   position: Position;
   velocity: { x: number; y: number };
-  zigzagTimer: number;
-  zigzagInterval: number;
-  zigzagAmplitude: number;
   size: ObstacleSize;
   isBoss?: boolean;
 }
@@ -44,6 +42,12 @@ interface ExplosionData {
   id: number;
   position: Position;
   variant: 'hit' | 'player' | 'bomb';
+}
+
+interface SparkBurstData {
+  id: number;
+  position: Position;
+  variant: 'normal' | 'boss' | 'player';
 }
 
 const JET_SIZE = 32; // Reduced for mobile - smaller collision radius
@@ -64,10 +68,9 @@ const BULLET_SPAWN_OFFSET = 30; // Pixels ahead of jet nose for bullet spawn (tu
 const FACING_THRESHOLD = 0.1; // Threshold for updating facing angle
 const OBSTACLES_PER_LEVEL = 5; // Base number of obstacles per level (multiplied by level)
 const COLLISION_SOLVER_PASSES = 3; // Number of collision resolution passes per frame
-
-// Deterministic zigzag parameters (consistent across all obstacles)
-const ZIGZAG_INTERVAL = 1000; // Fixed interval for direction changes (ms)
-const ZIGZAG_AMPLITUDE = 40; // Fixed amplitude for horizontal movement (pixels/sec)
+const SPARK_BURST_DURATION = 400; // Duration for normal spark bursts
+const SPARK_BURST_BOSS_DURATION = 600; // Duration for boss spark bursts
+const BOSS_MAX_HITS = 3; // Number of hits required to destroy boss
 
 // Score values for each obstacle size
 const SCORE_SMALL = 5;
@@ -84,6 +87,7 @@ export default function GameScreen() {
   const [bullets, setBullets] = useState<BulletData[]>([]);
   const [obstacles, setObstacles] = useState<ObstacleData[]>([]);
   const [explosions, setExplosions] = useState<ExplosionData[]>([]);
+  const [sparkBursts, setSparkBursts] = useState<SparkBurstData[]>([]);
   const [playfieldSize, setPlayfieldSize] = useState({ width: 0, height: 0 });
   const [facingAngle, setFacingAngle] = useState(0); // Angle in degrees, 0 = up
   const [score, setScore] = useState(0);
@@ -100,12 +104,14 @@ export default function GameScreen() {
   const bulletIdRef = useRef(0);
   const obstacleIdRef = useRef(0);
   const explosionIdRef = useRef(0);
+  const sparkBurstIdRef = useRef(0);
   const lastFireTimeRef = useRef(0);
   const joystickVectorRef = useRef({ x: 0, y: 0, magnitude: 0 });
   const explosionTimerRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
   const obstacleSpawnAccumulatorRef = useRef<number>(0);
   const effectTimersRef = useRef<Map<number, number>>(new Map());
+  const sparkBurstTimersRef = useRef<Map<number, number>>(new Map());
   const bossIdRef = useRef<number | null>(null);
   const isFiringRef = useRef(false);
   const fireAccumulatorRef = useRef(0);
@@ -189,6 +195,35 @@ export default function GameScreen() {
     }
   }, [gameState]);
 
+  // Cleanup spark burst timers on unmount or state transitions
+  useEffect(() => {
+    return () => {
+      sparkBurstTimersRef.current.forEach((timerId) => {
+        window.clearTimeout(timerId);
+      });
+      sparkBurstTimersRef.current.clear();
+    };
+  }, []);
+
+  // Helper to spawn a spark burst
+  const spawnSparkBurst = useCallback((position: Position, variant: 'normal' | 'boss' | 'player') => {
+    const burstId = sparkBurstIdRef.current++;
+    const duration = variant === 'boss' ? SPARK_BURST_BOSS_DURATION : SPARK_BURST_DURATION;
+    
+    setSparkBursts((prev) => [
+      ...prev,
+      { id: burstId, position, variant },
+    ]);
+    
+    // Schedule removal
+    const timerId = window.setTimeout(() => {
+      setSparkBursts((prev) => prev.filter((burst) => burst.id !== burstId));
+      sparkBurstTimersRef.current.delete(burstId);
+    }, duration);
+    
+    sparkBurstTimersRef.current.set(burstId, timerId);
+  }, []);
+
   // Centralized game over handler with reason tracking
   const triggerGameOver = useCallback((reason: GameOverReason = 'obstacle') => {
     if (gameStateRef.current === 'exploding' || gameStateRef.current === 'gameover') {
@@ -198,10 +233,17 @@ export default function GameScreen() {
     setGameState('exploding');
     setGameOverReason(reason);
     const explosionId = explosionIdRef.current++;
+    
+    // Determine explosion variant based on reason
+    const explosionVariant = reason === 'obstacle' ? 'bomb' : 'player';
+    
     setExplosions((prev) => [
       ...prev,
-      { id: explosionId, position: playerPosRef.current, variant: 'player' },
+      { id: explosionId, position: playerPosRef.current, variant: explosionVariant },
     ]);
+    
+    // Spawn spark burst at player position
+    spawnSparkBurst(playerPosRef.current, 'player');
     
     // Clear any existing explosion timer
     if (explosionTimerRef.current !== null) {
@@ -219,7 +261,7 @@ export default function GameScreen() {
     fireAccumulatorRef.current = 0;
     joystickVectorRef.current = { x: 0, y: 0, magnitude: 0 };
     setIsThrusting(false);
-  }, []);
+  }, [spawnSparkBurst]);
 
   // Handle joystick movement
   const handleJoystickMove = useCallback((vector: { x: number; y: number; magnitude: number }) => {
@@ -298,7 +340,7 @@ export default function GameScreen() {
     setBullets((prev) => [...prev, newBullet]);
   }, [playfieldSize]);
 
-  // Spawn an obstacle with deterministic zigzag
+  // Spawn an obstacle with straight-line motion
   const spawnObstacle = useCallback(() => {
     const currentPlayfieldSize = playfieldSizeRef.current;
     const currentLevel = levelRef.current;
@@ -316,27 +358,26 @@ export default function GameScreen() {
     const spawnX = Math.random() * 100;
     const spawnY = -5; // Just above the visible area
 
-    // Random horizontal velocity with level scaling
-    const baseVx = (Math.random() - 0.5) * 60;
+    // Level scaling for speed
     const levelMultiplier = 1 + (currentLevel - 1) * 0.15;
-    const vx = baseVx * levelMultiplier;
-    const vy = OBSTACLE_SPEED * levelMultiplier;
+    const speed = OBSTACLE_SPEED * levelMultiplier;
 
-    // Use deterministic zigzag parameters (consistent across all obstacles)
+    // Random initial velocity direction (downward with some horizontal component)
+    const angle = (Math.random() * 60 - 30) * (Math.PI / 180); // -30 to +30 degrees from vertical
+    const vx = Math.sin(angle) * speed;
+    const vy = Math.cos(angle) * speed;
+
     const newObstacle: ObstacleData = {
       id: obstacleIdRef.current++,
       position: { x: spawnX, y: spawnY },
       velocity: { x: vx, y: vy },
-      zigzagTimer: 0,
-      zigzagInterval: ZIGZAG_INTERVAL,
-      zigzagAmplitude: ZIGZAG_AMPLITUDE,
       size,
     };
 
     setObstacles((prev) => [...prev, newObstacle]);
   }, []);
 
-  // Spawn boss obstacle with deterministic zigzag
+  // Spawn boss obstacle with straight-line motion
   const spawnBoss = useCallback(() => {
     const currentPlayfieldSize = playfieldSizeRef.current;
     const currentLevel = levelRef.current;
@@ -349,16 +390,17 @@ export default function GameScreen() {
     const spawnY = -10; // Just above the visible area
 
     const levelMultiplier = 1 + (currentLevel - 1) * 0.15;
-    const vy = OBSTACLE_SPEED * 0.6 * levelMultiplier; // Boss moves slower
+    const speed = OBSTACLE_SPEED * 0.6 * levelMultiplier; // Boss moves slower
 
-    // Use deterministic zigzag parameters (consistent with regular obstacles)
+    // Boss starts moving downward with slight horizontal component
+    const angle = (Math.random() * 40 - 20) * (Math.PI / 180); // -20 to +20 degrees from vertical
+    const vx = Math.sin(angle) * speed;
+    const vy = Math.cos(angle) * speed;
+
     const bossObstacle: ObstacleData = {
       id: obstacleIdRef.current++,
       position: { x: spawnX, y: spawnY },
-      velocity: { x: 0, y: vy },
-      zigzagTimer: 0,
-      zigzagInterval: ZIGZAG_INTERVAL,
-      zigzagAmplitude: ZIGZAG_AMPLITUDE,
+      velocity: { x: vx, y: vy },
       size: 'large',
       isBoss: true,
     };
@@ -378,6 +420,7 @@ export default function GameScreen() {
     setBullets([]);
     setObstacles([]);
     setExplosions([]);
+    setSparkBursts([]);
     setScore(0);
     setLevel(1);
     setDestroyedThisLevel(0);
@@ -394,6 +437,10 @@ export default function GameScreen() {
       window.clearTimeout(explosionTimerRef.current);
       explosionTimerRef.current = null;
     }
+    sparkBurstTimersRef.current.forEach((timerId) => {
+      window.clearTimeout(timerId);
+    });
+    sparkBurstTimersRef.current.clear();
     // Reset joystick
     joystickVectorRef.current = { x: 0, y: 0, magnitude: 0 };
     setJoystickResetToken(prev => prev + 1);
@@ -420,6 +467,7 @@ export default function GameScreen() {
     setBullets([]);
     setObstacles([]);
     setExplosions([]);
+    setSparkBursts([]);
     setDestroyedThisLevel(0);
     setBossActive(false);
     setBossHits(0);
@@ -434,6 +482,10 @@ export default function GameScreen() {
       window.clearTimeout(explosionTimerRef.current);
       explosionTimerRef.current = null;
     }
+    sparkBurstTimersRef.current.forEach((timerId) => {
+      window.clearTimeout(timerId);
+    });
+    sparkBurstTimersRef.current.clear();
     // Reset joystick
     joystickVectorRef.current = { x: 0, y: 0, magnitude: 0 };
     setJoystickResetToken(prev => prev + 1);
@@ -491,19 +543,19 @@ export default function GameScreen() {
           
           // Check if player would reach border before clamping
           if (isAtBorder(newPos, playfieldSizeRef.current.width, playfieldSizeRef.current.height, JET_SIZE)) {
-            // Trigger player death with border reason
+            // Trigger player death with border reason and spawn spark burst
             triggerGameOver('border');
-            // Return clamped position for final frame
-            return clampPosition(newPos, playfieldSizeRef.current.width, playfieldSizeRef.current.height, JET_SIZE);
+            return prev; // Keep old position
           }
           
+          // Clamp position to playfield bounds
           return clampPosition(newPos, playfieldSizeRef.current.width, playfieldSizeRef.current.height, JET_SIZE);
         });
       }
 
       // Update bullets
-      setBullets((prevBullets) =>
-        prevBullets
+      setBullets((prevBullets) => {
+        return prevBullets
           .map((bullet) => ({
             ...bullet,
             position: {
@@ -511,189 +563,178 @@ export default function GameScreen() {
               y: bullet.position.y + bullet.velocityPercent.y,
             },
           }))
-          .filter((bullet) => !isOutOfBounds(bullet.position, playfieldSizeRef.current.width, playfieldSizeRef.current.height, BULLET_SIZE))
-      );
+          .filter((bullet) => !isOutOfBounds(bullet.position, playfieldSizeRef.current.width, playfieldSizeRef.current.height, BULLET_SIZE));
+      });
 
-      // Update obstacles with zigzag movement
+      // Update obstacles with straight-line motion and border reflection
       setObstacles((prevObstacles) => {
-        const updatedObstacles = prevObstacles.map((obstacle) => {
-          // Update zigzag timer
-          const newZigzagTimer = obstacle.zigzagTimer + deltaTime;
-          
-          // Check if it's time to change direction
-          let newVelocity = { ...obstacle.velocity };
-          let resetTimer = newZigzagTimer;
-          
-          if (newZigzagTimer >= obstacle.zigzagInterval) {
-            // Reverse horizontal direction
-            newVelocity.x = -obstacle.velocity.x;
-            // If velocity was zero, pick a random direction
-            if (newVelocity.x === 0) {
-              newVelocity.x = (Math.random() < 0.5 ? -1 : 1) * obstacle.zigzagAmplitude;
+        return prevObstacles
+          .map((obstacle) => {
+            const currentPlayfieldSize = playfieldSizeRef.current;
+            if (currentPlayfieldSize.width === 0 || currentPlayfieldSize.height === 0) {
+              return obstacle;
             }
-            resetTimer = 0;
-          }
-          
-          // Update position
-          const dx = (newVelocity.x * deltaSeconds) / playfieldSizeRef.current.width;
-          const dy = (newVelocity.y * deltaSeconds) / playfieldSizeRef.current.height;
-          
-          return {
-            ...obstacle,
-            position: {
+
+            // Calculate new position
+            const dx = (obstacle.velocity.x * deltaSeconds) / currentPlayfieldSize.width;
+            const dy = (obstacle.velocity.y * deltaSeconds) / currentPlayfieldSize.height;
+            let newPos = {
               x: obstacle.position.x + dx * 100,
               y: obstacle.position.y + dy * 100,
-            },
-            velocity: newVelocity,
-            zigzagTimer: resetTimer,
-          };
-        });
+            };
 
-        // Resolve obstacle-to-obstacle collisions
+            // Get collision radius based on size
+            let collisionRadius: number;
+            if (obstacle.isBoss) {
+              collisionRadius = BOSS_SIZE;
+            } else if (obstacle.size === 'small') {
+              collisionRadius = OBSTACLE_SIZE_SMALL;
+            } else if (obstacle.size === 'medium') {
+              collisionRadius = OBSTACLE_SIZE_MEDIUM;
+            } else {
+              collisionRadius = OBSTACLE_SIZE_LARGE;
+            }
+
+            // Reflect velocity at bounds
+            const reflectionResult = reflectAtBounds(
+              newPos,
+              obstacle.velocity,
+              currentPlayfieldSize.width,
+              currentPlayfieldSize.height,
+              collisionRadius
+            );
+
+            return {
+              ...obstacle,
+              position: reflectionResult.position,
+              velocity: reflectionResult.velocity,
+            };
+          })
+          .filter((obstacle) => {
+            // Remove obstacles that are far out of bounds (safety cleanup)
+            return !isOutOfBounds(obstacle.position, playfieldSizeRef.current.width, playfieldSizeRef.current.height, 20);
+          });
+      });
+
+      // Resolve obstacle-to-obstacle collisions
+      setObstacles((prevObstacles) => {
+        let workingObstacles = [...prevObstacles];
+        const currentPlayfieldSize = playfieldSizeRef.current;
+
+        if (currentPlayfieldSize.width === 0 || currentPlayfieldSize.height === 0) {
+          return workingObstacles;
+        }
+
+        // Multiple passes for better stability
         for (let pass = 0; pass < COLLISION_SOLVER_PASSES; pass++) {
-          for (let i = 0; i < updatedObstacles.length; i++) {
-            for (let j = i + 1; j < updatedObstacles.length; j++) {
-              const obstacleA = updatedObstacles[i];
-              const obstacleB = updatedObstacles[j];
-              
-              const radiusA = obstacleA.isBoss ? BOSS_SIZE : 
-                obstacleA.size === 'small' ? OBSTACLE_SIZE_SMALL :
-                obstacleA.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
-              
-              const radiusB = obstacleB.isBoss ? BOSS_SIZE :
-                obstacleB.size === 'small' ? OBSTACLE_SIZE_SMALL :
-                obstacleB.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
-              
+          for (let i = 0; i < workingObstacles.length; i++) {
+            for (let j = i + 1; j < workingObstacles.length; j++) {
+              const obsA = workingObstacles[i];
+              const obsB = workingObstacles[j];
+
+              if (!obsA || !obsB) continue;
+
+              const radiusA = obsA.isBoss ? BOSS_SIZE : 
+                obsA.size === 'small' ? OBSTACLE_SIZE_SMALL :
+                obsA.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
+              const radiusB = obsB.isBoss ? BOSS_SIZE :
+                obsB.size === 'small' ? OBSTACLE_SIZE_SMALL :
+                obsB.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
+
               const result = resolveObstacleCollision(
-                obstacleA.position,
-                obstacleA.velocity,
+                obsA.position,
+                obsA.velocity,
                 radiusA,
-                obstacleB.position,
-                obstacleB.velocity,
+                obsB.position,
+                obsB.velocity,
                 radiusB,
-                playfieldSizeRef.current.width,
-                playfieldSizeRef.current.height
+                currentPlayfieldSize.width,
+                currentPlayfieldSize.height
               );
-              
+
               if (result.collided && result.newPosition1 && result.newVelocity1 && result.newPosition2 && result.newVelocity2) {
-                updatedObstacles[i] = {
-                  ...obstacleA,
-                  position: result.newPosition1,
-                  velocity: result.newVelocity1,
-                };
-                updatedObstacles[j] = {
-                  ...obstacleB,
-                  position: result.newPosition2,
-                  velocity: result.newVelocity2,
-                };
+                workingObstacles[i] = { ...obsA, position: result.newPosition1, velocity: result.newVelocity1 };
+                workingObstacles[j] = { ...obsB, position: result.newPosition2, velocity: result.newVelocity2 };
               }
             }
           }
         }
 
-        // Apply boundary reflection for obstacles
-        return updatedObstacles.map((obstacle) => {
-          const radius = obstacle.isBoss ? BOSS_SIZE :
-            obstacle.size === 'small' ? OBSTACLE_SIZE_SMALL :
-            obstacle.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
-          
-          const reflected = reflectAtBounds(
-            obstacle.position,
-            obstacle.velocity,
-            playfieldSizeRef.current.width,
-            playfieldSizeRef.current.height,
-            radius
-          );
-          
-          return {
-            ...obstacle,
-            position: reflected.position,
-            velocity: reflected.velocity,
-          };
-        }).filter((obstacle) => {
-          // Remove obstacles that have gone off the bottom
-          return obstacle.position.y < 110;
-        });
+        return workingObstacles;
       });
 
       // Check bullet-obstacle collisions
       setBullets((prevBullets) => {
         const bulletsToKeep: BulletData[] = [];
-        const bulletsToRemove = new Set<number>();
+        const hitObstacleIds = new Set<number>();
 
         prevBullets.forEach((bullet) => {
-          let hit = false;
+          let bulletHit = false;
 
-          setObstacles((prevObstacles) => {
-            return prevObstacles.map((obstacle) => {
-              if (hit || bulletsToRemove.has(bullet.id)) return obstacle;
+          obstacles.forEach((obstacle) => {
+            if (hitObstacleIds.has(obstacle.id)) return;
 
-              const obstacleRadius = obstacle.isBoss ? BOSS_SIZE :
-                obstacle.size === 'small' ? OBSTACLE_SIZE_SMALL :
-                obstacle.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
+            const obstacleRadius = obstacle.isBoss ? BOSS_SIZE :
+              obstacle.size === 'small' ? OBSTACLE_SIZE_SMALL :
+              obstacle.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
 
-              const bulletPx = {
-                x: (bullet.position.x / 100) * playfieldSizeRef.current.width,
-                y: (bullet.position.y / 100) * playfieldSizeRef.current.height,
-              };
-              const obstaclePx = {
-                x: (obstacle.position.x / 100) * playfieldSizeRef.current.width,
-                y: (obstacle.position.y / 100) * playfieldSizeRef.current.height,
-              };
+            const dx = (bullet.position.x - obstacle.position.x) * playfieldSizeRef.current.width / 100;
+            const dy = (bullet.position.y - obstacle.position.y) * playfieldSizeRef.current.height / 100;
+            const distance = Math.sqrt(dx * dx + dy * dy);
 
-              const dx = bulletPx.x - obstaclePx.x;
-              const dy = bulletPx.y - obstaclePx.y;
-              const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < obstacleRadius + BULLET_SIZE) {
+              bulletHit = true;
+              hitObstacleIds.add(obstacle.id);
 
-              if (distance < obstacleRadius + BULLET_SIZE) {
-                hit = true;
-                bulletsToRemove.add(bullet.id);
+              // Spawn spark burst at obstacle position
+              spawnSparkBurst(obstacle.position, obstacle.isBoss ? 'boss' : 'normal');
 
-                // Add hit explosion
-                const explosionId = explosionIdRef.current++;
-                setExplosions((prev) => [
-                  ...prev,
-                  { id: explosionId, position: bullet.position, variant: 'hit' },
-                ]);
+              // Handle boss hits
+              if (obstacle.isBoss) {
+                const newHits = bossHits + 1;
+                setBossHits(newHits);
 
-                // Schedule removal of hit effect
-                effectTimersRef.current.set(
-                  explosionId,
-                  window.setTimeout(() => {
-                    setExplosions((prev) => prev.filter((e) => e.id !== explosionId));
-                    effectTimersRef.current.delete(explosionId);
-                  }, HIT_EFFECT_DURATION)
-                );
-
-                if (obstacle.isBoss) {
-                  // Boss hit - increment hit counter
-                  const newHits = bossHits + 1;
-                  setBossHits(newHits);
+                if (newHits >= BOSS_MAX_HITS) {
+                  // Boss destroyed - spawn boss-death spark burst
+                  spawnSparkBurst(obstacle.position, 'boss');
                   
-                  const requiredHits = levelRef.current * 5;
-                  if (newHits >= requiredHits) {
-                    // Boss defeated
-                    setScore((prev) => prev + 100);
-                    setBossActive(false);
-                    bossIdRef.current = null;
-                    return null; // Remove boss
-                  }
-                  return obstacle; // Boss survives
-                } else {
-                  // Regular obstacle destroyed
-                  const points = obstacle.size === 'small' ? SCORE_SMALL :
-                    obstacle.size === 'medium' ? SCORE_MEDIUM : SCORE_LARGE;
-                  setScore((prev) => prev + points);
+                  // Remove boss
+                  setObstacles((prev) => prev.filter((o) => o.id !== obstacle.id));
+                  setBossActive(false);
+                  bossIdRef.current = null;
+                  
+                  // Award points
+                  setScore((prev) => prev + 50);
                   setDestroyedThisLevel((prev) => prev + 1);
-                  return null; // Remove obstacle
                 }
+              } else {
+                // Regular obstacle destroyed
+                setObstacles((prev) => prev.filter((o) => o.id !== obstacle.id));
+                
+                // Award points based on size
+                const points = obstacle.size === 'small' ? SCORE_SMALL :
+                  obstacle.size === 'medium' ? SCORE_MEDIUM : SCORE_LARGE;
+                setScore((prev) => prev + points);
+                setDestroyedThisLevel((prev) => prev + 1);
               }
 
-              return obstacle;
-            }).filter((o): o is ObstacleData => o !== null);
+              // Spawn hit explosion
+              const explosionId = explosionIdRef.current++;
+              setExplosions((prev) => [
+                ...prev,
+                { id: explosionId, position: obstacle.position, variant: 'hit' },
+              ]);
+
+              // Schedule explosion removal
+              const timerId = window.setTimeout(() => {
+                setExplosions((prev) => prev.filter((exp) => exp.id !== explosionId));
+                effectTimersRef.current.delete(explosionId);
+              }, HIT_EFFECT_DURATION);
+              effectTimersRef.current.set(explosionId, timerId);
+            }
           });
 
-          if (!hit) {
+          if (!bulletHit) {
             bulletsToKeep.push(bullet);
           }
         });
@@ -702,55 +743,43 @@ export default function GameScreen() {
       });
 
       // Check player-obstacle collisions
-      setObstacles((prevObstacles) => {
-        let playerHit = false;
+      obstacles.forEach((obstacle) => {
+        const obstacleRadius = obstacle.isBoss ? BOSS_SIZE :
+          obstacle.size === 'small' ? OBSTACLE_SIZE_SMALL :
+          obstacle.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
 
-        prevObstacles.forEach((obstacle) => {
-          if (playerHit) return;
-
-          const obstacleRadius = obstacle.isBoss ? BOSS_SIZE :
-            obstacle.size === 'small' ? OBSTACLE_SIZE_SMALL :
-            obstacle.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
-
-          if (isFullHit(
-            playerPosRef.current,
-            JET_SIZE,
-            obstacle.position,
-            obstacleRadius,
-            playfieldSizeRef.current.width,
-            playfieldSizeRef.current.height
-          )) {
-            playerHit = true;
-            
-            // Add bomb explosion at collision point
-            const explosionId = explosionIdRef.current++;
-            setExplosions((prev) => [
-              ...prev,
-              { id: explosionId, position: obstacle.position, variant: 'bomb' },
-            ]);
-            
-            // Trigger game over with obstacle reason
-            triggerGameOver('obstacle');
-          }
-        });
-
-        return prevObstacles;
+        // Check if this is a full hit (not just grazing)
+        if (isFullHit(
+          playerPosRef.current,
+          JET_SIZE,
+          obstacle.position,
+          obstacleRadius,
+          playfieldSizeRef.current.width,
+          playfieldSizeRef.current.height
+        )) {
+          triggerGameOver('obstacle');
+        }
       });
 
-      // Spawn obstacles at regular intervals
+      // Spawn obstacles
       obstacleSpawnAccumulatorRef.current += deltaTime;
       if (obstacleSpawnAccumulatorRef.current >= OBSTACLE_SPAWN_INTERVAL) {
         spawnObstacle();
-        obstacleSpawnAccumulatorRef.current = 0;
+        obstacleSpawnAccumulatorRef.current -= OBSTACLE_SPAWN_INTERVAL;
       }
 
-      // Check if level is complete (destroyed enough obstacles and no boss active)
-      const targetObstacles = levelRef.current * OBSTACLES_PER_LEVEL;
-      if (destroyedThisLevelRef.current >= targetObstacles && !bossActiveRef.current) {
+      // Check level completion
+      const currentDestroyed = destroyedThisLevelRef.current;
+      const currentLevel = levelRef.current;
+      const requiredDestroyed = OBSTACLES_PER_LEVEL * currentLevel;
+      const currentBossActive = bossActiveRef.current;
+
+      if (currentDestroyed >= requiredDestroyed && !currentBossActive) {
         // Spawn boss
         spawnBoss();
       }
 
+      // Continue loop
       animationFrameRef.current = requestAnimationFrame(gameLoop);
     };
 
@@ -761,17 +790,37 @@ export default function GameScreen() {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [gameState, spawnBullet, spawnObstacle, spawnBoss, triggerGameOver, bossHits, sensitivity]);
+  }, [
+    gameState,
+    obstacles,
+    bossHits,
+    spawnBullet,
+    spawnObstacle,
+    spawnBoss,
+    triggerGameOver,
+    spawnSparkBurst,
+    sensitivity,
+  ]);
 
-  // Calculate target obstacles for current level
-  const targetObstacles = level * OBSTACLES_PER_LEVEL;
-  const bossMaxHits = level * 5;
+  // Cleanup effect timers on unmount
+  useEffect(() => {
+    return () => {
+      effectTimersRef.current.forEach((timerId) => {
+        window.clearTimeout(timerId);
+      });
+      effectTimersRef.current.clear();
+      
+      if (explosionTimerRef.current !== null) {
+        window.clearTimeout(explosionTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
-    <div ref={containerRef} className="relative w-full h-full overflow-hidden">
+    <div ref={containerRef} className="relative w-full h-full">
       <Playfield>
-        {/* Render player jet - only during playing and exploding states */}
-        {(gameState === 'playing' || gameState === 'exploding') && (
+        {/* Player */}
+        {(gameState === 'playing' || gameState === 'paused') && (
           <PlayerJet
             position={playerPos}
             rotation={facingAngle}
@@ -779,8 +828,8 @@ export default function GameScreen() {
           />
         )}
 
-        {/* Render bullets - only during playing and exploding states */}
-        {(gameState === 'playing' || gameState === 'exploding') && bullets.map((bullet) => (
+        {/* Bullets */}
+        {bullets.map((bullet) => (
           <Bullet
             key={bullet.id}
             position={bullet.position}
@@ -788,8 +837,8 @@ export default function GameScreen() {
           />
         ))}
 
-        {/* Render obstacles - during playing and exploding states */}
-        {(gameState === 'playing' || gameState === 'exploding') && obstacles.map((obstacle) => (
+        {/* Obstacles */}
+        {obstacles.map((obstacle) => (
           <Obstacle
             key={obstacle.id}
             position={obstacle.position}
@@ -798,7 +847,7 @@ export default function GameScreen() {
           />
         ))}
 
-        {/* Render explosions */}
+        {/* Explosions */}
         {explosions.map((explosion) => (
           <Explosion
             key={explosion.id}
@@ -806,19 +855,30 @@ export default function GameScreen() {
             variant={explosion.variant}
           />
         ))}
+
+        {/* Spark Bursts */}
+        {sparkBursts.map((burst) => (
+          <SparkBurst
+            key={burst.id}
+            x={burst.position.x}
+            y={burst.position.y}
+            variant={burst.variant}
+          />
+        ))}
       </Playfield>
 
+      {/* Game UI Overlay */}
       <GameOverlay
         gameState={gameState}
         gameOverReason={gameOverReason}
         score={score}
         level={level}
-        timeRemaining={timeRemaining}
+        destroyedThisLevel={destroyedThisLevel}
+        targetObstacles={OBSTACLES_PER_LEVEL * level}
         bossActive={bossActive}
         bossHits={bossHits}
-        bossMaxHits={bossMaxHits}
-        destroyedThisLevel={destroyedThisLevel}
-        targetObstacles={targetObstacles}
+        bossMaxHits={BOSS_MAX_HITS}
+        timeRemaining={timeRemaining}
         onStart={startGame}
         onPause={pauseGame}
         onResume={resumeGame}

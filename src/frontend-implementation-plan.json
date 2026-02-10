@@ -1,42 +1,88 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix time-expired transition rendering and show TIME UP reason",
+  "title": "Spark particle burst effects on impacts, deaths, and player collisions",
   "requirements": [
     {
-      "id": "REQ-6",
-      "summary": "Keep regular and boss obstacles rendered during time-expired transition states ('exploding' → 'gameover') without flicker/disappearance.",
+      "id": "REQ-3",
+      "summary": "Create a reusable, short-lived spark-burst effect that spawns at x/y percent with tunable intensity and cleans itself up without per-frame state updates.",
       "acceptanceCriteria": [
-        "When the countdown reaches 0, any obstacles (including the boss) that were on-screen remain rendered on the playfield during the 'exploding' transition and until the game over UI fully takes over.",
-        "Boss obstacle remains rendered with its boss styling (red scheme) through the time-expired transition.",
-        "Reproduction check: start a level, allow timer to expire without dying to border/obstacle, and confirm obstacles do not flicker/disappear due to state transition."
+        "A reusable spark-burst effect component exists under the game effects directory and accepts at least: position (x/y percent) and a variant/intensity flag.",
+        "The effect renders multiple short-lived spark streaks/particles with a visually 'spark' feel (bright core, quick fade, small spread).",
+        "The effect automatically disappears after its configured lifetime and does not leak timers or intervals."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/game/GameScreen.tsx",
+          "path": "frontend/src/game/effects/SparkBurst.tsx",
+          "operation": "create",
+          "description": "Create a SparkBurst effect component under the game effects directory that renders a spark-like burst at an {x%, y%} position and supports an intensity/variant flag (e.g., normal vs boss/large). Implement as CSS-driven animations (no per-frame React state updates) and expose an optional completion callback so the parent can remove it cleanly after its lifetime."
+        },
+        {
+          "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Adjust playfield rendering conditions so obstacles (including boss obstacles) remain mounted/rendered not only in 'playing' but also during the 'exploding' transition (and any other non-interactive transition states needed) while gameplay updates remain paused; ensure nothing clears or conditionally hides obstacles on state change to 'exploding'/'gameover'."
+          "description": "Add CSS keyframes/classes needed for the SparkBurst visual (quick streak expansion, fade-out, small spread, optional glow), ensuring animations naturally finish within the configured lifetime and support a stronger boss/large variant."
         }
       ]
     },
     {
-      "id": "REQ-7",
-      "summary": "Introduce a distinct time-expired loss reason and display a clear 'TIME UP!' message on the game-over overlay when the countdown reaches 0.",
+      "id": "REQ-4",
+      "summary": "Emit a spark-burst once per bullet→obstacle collision at the impact position while preserving existing hit behavior.",
       "acceptanceCriteria": [
-        "If the timer reaches 0, the game over overlay shows the text \"TIME UP!\" (English, user-facing).",
-        "If the game ends for other existing reasons (e.g., player hits the border), the game over overlay does not show \"TIME UP!\" and continues to show the normal game-over messaging.",
-        "The 'TIME UP!' message is visible and legible above any background/blur effects on the game over overlay."
+        "On bullet→obstacle collision, a visible spark burst appears at the obstacle hit location.",
+        "The spark burst does not continuously retrigger while entities overlap; it is emitted once per registered hit event.",
+        "Existing bullet hit behavior (e.g., bullet removal, scoring, existing hit flash/explosion) continues to work."
       ],
       "file_operations": [
         {
           "path": "frontend/src/game/GameScreen.tsx",
           "operation": "modify",
-          "description": "Add and manage a game-over reason state (e.g., 'timeExpired' vs existing loss reasons such as 'borderHit'); update the centralized game-over trigger to accept/record a reason; set the reason to time-expired when the countdown hits 0 and to the appropriate non-time reason for existing failure paths; pass the reason into GameOverlay."
+          "description": "Wire SparkBurst into the game rendering and collision handling: add a managed collection of active spark-bursts (ids + position + variant) and a cleanup strategy (timeouts tracked and cleared) so each burst self-terminates. In the existing bullet→obstacle hit registration logic, spawn a normal-intensity SparkBurst exactly when a hit is recorded (same moment bullet removal/existing hit feedback occurs) to ensure it triggers once per collision event, not per-frame overlap."
         },
         {
-          "path": "frontend/src/game/ui/GameOverlay.tsx",
+          "path": "frontend/src/game/effects/SparkBurst.tsx",
           "operation": "modify",
-          "description": "Extend GameOverlay props to accept the game-over reason and conditionally render a prominent \"TIME UP!\" message on the gameover screen only when the reason indicates time-expired; ensure the message styling/stacking keeps it legible over the existing blurred/dimmed overlay."
+          "description": "Ensure SparkBurst supports a normal impact variant suitable for bullet→obstacle hits (multiple short streaks with bright core and quick fade) and works correctly when instantiated repeatedly from GameScreen (no timer/interval leaks)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Emit a higher-intensity spark-burst once when a boss obstacle is destroyed/removed on its final hit.",
+      "acceptanceCriteria": [
+        "When the boss obstacle is destroyed/removed, a distinct, stronger spark burst is shown at the boss death position (e.g., more particles, longer streaks, brighter glow).",
+        "The boss-death spark burst triggers only once per boss death event."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/game/GameScreen.tsx",
+          "operation": "modify",
+          "description": "In the boss damage/final-hit logic (when the boss obstacle is removed due to taking the final hit), spawn a higher-intensity SparkBurst at the boss position at the time of death. Ensure the emission is tied to the single boss-death event (not repeated across frames) and does not interfere with existing scoring/removal behavior."
+        },
+        {
+          "path": "frontend/src/game/effects/SparkBurst.tsx",
+          "operation": "modify",
+          "description": "Add/adjust the boss/large intensity variant styling (e.g., more streaks, longer travel, brighter glow, slightly longer lifetime) so the boss-death burst is visually distinct from normal impacts."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Emit a spark-burst when the player dies due to obstacle or border collision, alongside the existing player explosion and unchanged game-over flow.",
+      "acceptanceCriteria": [
+        "On player death caused by obstacle collision, a visible spark burst appears at the player position (or contact point) at the moment death is triggered.",
+        "On player death caused by border collision, a visible spark burst appears at the player position (or border contact point) at the moment death is triggered.",
+        "The existing player explosion effect still plays and the game over flow remains unchanged."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/game/GameScreen.tsx",
+          "operation": "modify",
+          "description": "Augment the player-death trigger flow to also spawn a SparkBurst at the moment death is initiated (using the player position/contact point) for both obstacle-collision deaths and border-collision deaths. Keep the existing Explosion('player'/'bomb' as applicable) and game state transitions unchanged; ensure the burst triggers exactly once per death event and that any spark timers are cleared/reset on restart/level transitions/unmount."
+        },
+        {
+          "path": "frontend/src/game/effects/SparkBurst.tsx",
+          "operation": "modify",
+          "description": "Confirm SparkBurst supports a variant suitable for player-death moments (can reuse normal or define a slightly stronger 'player' intensity) while still being short-lived and fully cleanup-safe when the game transitions states."
         }
       ]
     }

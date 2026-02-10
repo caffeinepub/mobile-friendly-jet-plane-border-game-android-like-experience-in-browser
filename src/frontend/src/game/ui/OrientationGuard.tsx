@@ -50,10 +50,10 @@ export default function OrientationGuard({ children }: OrientationGuardProps) {
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-game-field">
         <div className="text-center space-y-6 px-6">
           <RotateCw className="w-20 h-20 text-game-primary mx-auto animate-spin" style={{ animationDuration: '3s' }} />
-          <h2 className="text-2xl sm:text-3xl font-bold text-game-primary">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white">
             Please Rotate Your Device
           </h2>
-          <p className="text-base sm:text-lg text-game-text-secondary max-w-sm mx-auto">
+          <p className="text-base sm:text-lg text-white max-w-sm mx-auto">
             This game is best played in landscape orientation for the optimal experience.
           </p>
         </div>

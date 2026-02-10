@@ -1,37 +1,65 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T14:16:17.505Z",
+  "generatedAt": "2026-02-10T16:30:10.318Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 4,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-6",
-        "summary": "Ensure regular obstacles and boss obstacles remain visible (do not disappear unexpectedly) when the level timer reaches 0 and the game transitions out of the 'playing' state (e.g., into 'exploding' and then 'gameover').",
+        "id": "REQ-3",
+        "summary": "Add a dedicated spark-like particle burst visual effect that can be spawned at an (x%, y%) position, with tunable intensity (e.g., normal vs boss/large), and that self-terminates after a short duration without requiring per-frame React state updates.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/game/GameScreen.tsx"
+          "frontend/src/game/effects/SparkBurst.tsx",
+          "frontend/src/index.css"
         ],
         "matchedFiles": [
-          "frontend/src/game/GameScreen.tsx"
+          "frontend/src/game/effects/SparkBurst.tsx",
+          "frontend/src/index.css"
         ]
       },
       {
-        "id": "REQ-7",
-        "summary": "Add a distinct 'time expired' game-over reason and display a clear 'TIME UP!' message when the countdown reaches 0 (different from other loss conditions such as hitting the border).",
+        "id": "REQ-4",
+        "summary": "When a bullet collides with an obstacle, spawn the spark-burst effect at the collision/impact position in addition to any existing hit feedback, and ensure it triggers once per collision event.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/ui/GameOverlay.tsx"
+          "frontend/src/game/effects/SparkBurst.tsx"
         ],
         "matchedFiles": [
           "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/ui/GameOverlay.tsx"
+          "frontend/src/game/effects/SparkBurst.tsx"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "When a boss obstacle dies (i.e., when it is removed due to taking the final hit), spawn a higher-intensity spark-burst effect at the boss position at the time of death.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/game/GameScreen.tsx",
+          "frontend/src/game/effects/SparkBurst.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/game/GameScreen.tsx",
+          "frontend/src/game/effects/SparkBurst.tsx"
+        ]
+      },
+      {
+        "id": "REQ-6",
+        "summary": "When the player collides with an obstacle or the playfield border (causing player death/game over), spawn a spark-burst effect at the collision position/time, in addition to the existing player explosion sequence.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/game/GameScreen.tsx",
+          "frontend/src/game/effects/SparkBurst.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/game/GameScreen.tsx",
+          "frontend/src/game/effects/SparkBurst.tsx"
         ]
       }
     ]
@@ -42,7 +70,8 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/game/GameScreen.tsx",
-    "frontend/src/game/ui/GameOverlay.tsx",
+    "frontend/src/game/effects/SparkBurst.tsx",
+    "frontend/src/index.css",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

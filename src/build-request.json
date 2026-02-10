@@ -1,52 +1,89 @@
 {
   "kind": "build_request",
-  "title": "Fix obstacle visibility at time end and show 'Time up!' message",
-  "priority": "high",
+  "title": "Add spark particle bursts on bullet impacts, obstacle/boss deaths, and player collisions",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-6",
-      "text": "Ensure regular obstacles and boss obstacles remain visible (do not disappear unexpectedly) when the level timer reaches 0 and the game transitions out of the 'playing' state (e.g., into 'exploding' and then 'gameover').",
+      "id": "REQ-3",
+      "text": "Add a dedicated spark-like particle burst visual effect that can be spawned at an (x%, y%) position, with tunable intensity (e.g., normal vs boss/large), and that self-terminates after a short duration without requiring per-frame React state updates.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-3"
         ],
         "quotes": [
-          "obstacles and boss obstacles invisible. when time is over. it should display time up!"
+          "when bullets hit to obstacles or bullets hit to boss obstacles when it is died at the time of died it should get spark like particles. also do the same with player. when player collide with obstacles or borders"
         ]
       },
       "acceptanceCriteria": [
-        "When the countdown reaches 0, any obstacles (including the boss) that were on-screen remain rendered on the playfield during the 'exploding' transition and until the game over UI fully takes over.",
-        "Boss obstacle remains rendered with its boss styling (red scheme) through the time-expired transition.",
-        "Reproduction check: start a level, allow timer to expire without dying to border/obstacle, and confirm obstacles do not flicker/disappear due to state transition."
+        "A reusable spark-burst effect component exists under the game effects directory and accepts at least: position (x/y percent) and a variant/intensity flag.",
+        "The effect renders multiple short-lived spark streaks/particles with a visually 'spark' feel (bright core, quick fade, small spread).",
+        "The effect automatically disappears after its configured lifetime and does not leak timers or intervals."
       ]
     },
     {
-      "id": "REQ-7",
-      "text": "Add a distinct 'time expired' game-over reason and display a clear 'TIME UP!' message when the countdown reaches 0 (different from other loss conditions such as hitting the border).",
+      "id": "REQ-4",
+      "text": "When a bullet collides with an obstacle, spawn the spark-burst effect at the collision/impact position in addition to any existing hit feedback, and ensure it triggers once per collision event.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-3"
         ],
         "quotes": [
-          "when time is over. it should display time up!"
+          "when bullets hit to obstacles or bullets hit to boss obstacles when it is died at the time of died it should get spark like particles."
         ]
       },
       "acceptanceCriteria": [
-        "If the timer reaches 0, the game over overlay shows the text \"TIME UP!\" (English, user-facing).",
-        "If the game ends for other existing reasons (e.g., player hits the border), the game over overlay does not show \"TIME UP!\" and continues to show the normal game-over messaging.",
-        "The 'TIME UP!' message is visible and legible above any background/blur effects on the game over overlay."
+        "On bullet→obstacle collision, a visible spark burst appears at the obstacle hit location.",
+        "The spark burst does not continuously retrigger while entities overlap; it is emitted once per registered hit event.",
+        "Existing bullet hit behavior (e.g., bullet removal, scoring, existing hit flash/explosion) continues to work."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "When a boss obstacle dies (i.e., when it is removed due to taking the final hit), spawn a higher-intensity spark-burst effect at the boss position at the time of death.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "...bullets hit to boss obstacles when it is died at the time of died it should get spark like particles."
+        ]
+      },
+      "acceptanceCriteria": [
+        "When the boss obstacle is destroyed/removed, a distinct, stronger spark burst is shown at the boss death position (e.g., more particles, longer streaks, brighter glow).",
+        "The boss-death spark burst triggers only once per boss death event."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "When the player collides with an obstacle or the playfield border (causing player death/game over), spawn a spark-burst effect at the collision position/time, in addition to the existing player explosion sequence.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "also do the same with player. when player collide with obstacles or borders"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On player death caused by obstacle collision, a visible spark burst appears at the player position (or contact point) at the moment death is triggered.",
+        "On player death caused by border collision, a visible spark burst appears at the player position (or border contact point) at the moment death is triggered.",
+        "The existing player explosion effect still plays and the game over flow remains unchanged."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (compose existing UI components instead).",
-    "Do not modify immutable hook entrypoints (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx)."
+    "Do not modify any files under frontend/src/components/ui (read-only).",
+    "Do not modify immutable hook files listed in SYSTEM_CONTEXT (compose around them if needed).",
+    "Backend canister logic should remain unchanged (this is a client-side visual effect request)."
   ],
   "nonGoals": [
-    "Adding new backend persistence, leaderboards, or user accounts beyond existing Internet Identity scaffolding.",
-    "Changing overall level timing rules (e.g., getLevelDuration) beyond what is needed to correctly detect and present time-expired state."
+    "Changing gameplay balance, collision rules, scoring, or spawn rates.",
+    "Adding audio effects.",
+    "Adding new backend persistence or networking features."
   ],
   "imageRequirements": {
     "required": [],
