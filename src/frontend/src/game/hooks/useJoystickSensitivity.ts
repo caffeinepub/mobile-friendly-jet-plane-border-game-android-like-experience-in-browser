@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 const STORAGE_KEY = 'jetfighter-joystick-sensitivity';
-const DEFAULT_SENSITIVITY = 1.0; // Matches the newly tuned baseline from joystickMovement.ts
+const DEFAULT_SENSITIVITY = 2.0; // Default to 2.0 as requested
 
 /**
  * Hook to manage joystick sensitivity with localStorage persistence.
@@ -14,7 +14,7 @@ export function useJoystickSensitivity() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored !== null) {
         const parsed = parseFloat(stored);
-        if (!isNaN(parsed) && parsed > 0 && parsed <= 2) {
+        if (!isNaN(parsed) && parsed >= 0.5 && parsed <= 2) {
           return parsed;
         }
       }

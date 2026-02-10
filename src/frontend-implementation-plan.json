@@ -1,53 +1,42 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Tune virtual joystick movement curve and add in-game sensitivity setting",
+  "title": "Fix time-expired transition rendering and show TIME UP reason",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Reduce top movement speed and increase fine control near joystick center by tuning the joystick-to-movement curve and scaling.",
+      "id": "REQ-6",
+      "summary": "Keep regular and boss obstacles rendered during time-expired transition states ('exploding' → 'gameover') without flicker/disappearance.",
       "acceptanceCriteria": [
-        "Player movement speed at maximum joystick deflection is reduced compared to the current behavior (slower top speed).",
-        "Small joystick movements near center result in more precise/gradual player movement (less jumpy).",
-        "No changes break joystick neutral behavior (releasing the joystick stops movement promptly)."
+        "When the countdown reaches 0, any obstacles (including the boss) that were on-screen remain rendered on the playfield during the 'exploding' transition and until the game over UI fully takes over.",
+        "Boss obstacle remains rendered with its boss styling (red scheme) through the time-expired transition.",
+        "Reproduction check: start a level, allow timer to expire without dying to border/obstacle, and confirm obstacles do not flicker/disappear due to state transition."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/game/utils/joystickMovement.ts",
-          "operation": "modify",
-          "description": "Tune the joystick processing curve to be less sensitive: lower the max speed scaling and adjust the curve exponent/remap so small magnitudes produce finer movement while full deflection produces a noticeably slower top speed. Keep deadzone/neutral output behavior intact (speedFactor 0 at/under deadzone)."
-        },
-        {
           "path": "frontend/src/game/GameScreen.tsx",
           "operation": "modify",
-          "description": "Update gameplay movement computation to use the newly tuned joystick mapping output for effective movement speed, ensuring releasing the joystick still promptly yields no movement (speedFactor 0) and does not introduce drift."
+          "description": "Adjust playfield rendering conditions so obstacles (including boss obstacles) remain mounted/rendered not only in 'playing' but also during the 'exploding' transition (and any other non-interactive transition states needed) while gameplay updates remain paused; ensure nothing clears or conditionally hides obstacles on state change to 'exploding'/'gameover'."
         }
       ]
     },
     {
-      "id": "REQ-2",
-      "summary": "Add a labeled in-game sensitivity control (playing/paused) that updates movement immediately and persists locally across refresh, defaulting to the newly tuned baseline.",
+      "id": "REQ-7",
+      "summary": "Introduce a distinct time-expired loss reason and display a clear 'TIME UP!' message on the game-over overlay when the countdown reaches 0.",
       "acceptanceCriteria": [
-        "A sensitivity control is available during gameplay (playing/paused states) and is labeled in English.",
-        "Changing the control updates movement sensitivity immediately (no reload required).",
-        "The chosen sensitivity value persists across page reloads using client-side storage (e.g., localStorage).",
-        "The default sensitivity value matches the newly tuned baseline from REQ-1."
+        "If the timer reaches 0, the game over overlay shows the text \"TIME UP!\" (English, user-facing).",
+        "If the game ends for other existing reasons (e.g., player hits the border), the game over overlay does not show \"TIME UP!\" and continues to show the normal game-over messaging.",
+        "The 'TIME UP!' message is visible and legible above any background/blur effects on the game over overlay."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/game/hooks/useJoystickSensitivity.ts",
-          "operation": "create",
-          "description": "Create a small React hook to manage joystick sensitivity as a number with: (1) a default value that matches the new tuned baseline from REQ-1, (2) read-once initialization from localStorage, and (3) persistence to localStorage on change."
-        },
-        {
           "path": "frontend/src/game/GameScreen.tsx",
           "operation": "modify",
-          "description": "Use the new sensitivity hook to obtain the current sensitivity scalar and apply it to joystick-driven movement immediately (no reload). Pass the current sensitivity and an onChange handler down to the gameplay overlay UI."
+          "description": "Add and manage a game-over reason state (e.g., 'timeExpired' vs existing loss reasons such as 'borderHit'); update the centralized game-over trigger to accept/record a reason; set the reason to time-expired when the countdown hits 0 and to the appropriate non-time reason for existing failure paths; pass the reason into GameOverlay."
         },
         {
           "path": "frontend/src/game/ui/GameOverlay.tsx",
           "operation": "modify",
-          "description": "Add an in-game sensitivity control to the existing HUD shown during playing/paused states (no new routes/pages). Use existing shadcn-ui composition patterns already present (e.g., the existing Button/Progress usage) without editing any files under frontend/src/components/ui; implement the control as a labeled UI element (e.g., a native range input + text label) that calls back to update sensitivity immediately. Verify the component's usage instructions before implementing."
+          "description": "Extend GameOverlay props to accept the game-over reason and conditionally render a prominent \"TIME UP!\" message on the gameover screen only when the reason indicates time-expired; ensure the message styling/stacking keeps it legible over the existing blurred/dimmed overlay."
         }
       ]
     }

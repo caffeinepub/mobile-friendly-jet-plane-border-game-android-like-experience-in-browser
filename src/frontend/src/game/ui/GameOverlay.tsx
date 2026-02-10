@@ -5,14 +5,19 @@ import VirtualJoystick from './VirtualJoystick';
 import ShootButton from './ShootButton';
 import { formatTime } from '../utils/levelTimer';
 
+type GameOverReason = 'border' | 'obstacle' | 'timeExpired' | null;
+
 interface GameOverlayProps {
   gameState: 'idle' | 'playing' | 'exploding' | 'gameover' | 'paused' | 'levelcomplete';
+  gameOverReason: GameOverReason;
   score: number;
   level: number;
   timeRemaining: number;
   bossActive: boolean;
   bossHits: number;
   bossMaxHits: number;
+  destroyedThisLevel: number;
+  targetObstacles: number;
   onStart: () => void;
   onPause: () => void;
   onResume: () => void;
@@ -28,12 +33,15 @@ interface GameOverlayProps {
 
 export default function GameOverlay({
   gameState,
+  gameOverReason,
   score,
   level,
   timeRemaining,
   bossActive,
   bossHits,
   bossMaxHits,
+  destroyedThisLevel,
+  targetObstacles,
   onStart,
   onPause,
   onResume,
@@ -46,21 +54,24 @@ export default function GameOverlay({
   sensitivity,
   onSensitivityChange,
 }: GameOverlayProps) {
+  // Calculate level progress percentage (capped at 100%)
+  const levelProgress = Math.min(100, (destroyedThisLevel / targetObstacles) * 100);
+
   return (
     <>
       {/* HUD - Top bar */}
       {(gameState === 'playing' || gameState === 'paused') && (
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-2 py-1 sm:px-3 sm:py-1.5 bg-game-field/80 backdrop-blur-sm border-b border-game-border z-10">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="text-xs sm:text-sm font-bold text-game-accent">
-              SCORE: <span className="text-foreground">{score}</span>
+            <div className="text-xs sm:text-sm font-bold text-white">
+              SCORE: <span className="text-white">{score}</span>
             </div>
-            <div className="text-xs sm:text-sm font-bold text-game-accent">
-              LEVEL: <span className="text-foreground">{level}</span>
+            <div className="text-xs sm:text-sm font-bold text-white">
+              LEVEL: <span className="text-white">{level}</span>
             </div>
           </div>
-          <div className="text-xs sm:text-sm font-bold text-game-accent">
-            TIME: <span className="text-foreground">{formatTime(timeRemaining)}</span>
+          <div className="text-xs sm:text-sm font-bold text-white">
+            TIME: <span className="text-white">{formatTime(timeRemaining)}</span>
           </div>
           <Button
             size="sm"
@@ -73,13 +84,28 @@ export default function GameOverlay({
         </div>
       )}
 
-      {/* Boss health bar */}
+      {/* Level progress bar - shown when boss is not active */}
+      {(gameState === 'playing' || gameState === 'paused') && !bossActive && (
+        <div className="absolute top-10 sm:top-11 left-0 right-0 px-2 sm:px-3 z-10">
+          <div className="bg-game-field/80 backdrop-blur-sm border border-game-border rounded px-2 py-1">
+            <div className="flex items-center justify-between mb-0.5">
+              <span className="text-[10px] sm:text-xs font-bold text-white">LEVEL PROGRESS</span>
+              <span className="text-[10px] sm:text-xs font-bold text-white">
+                {destroyedThisLevel}/{targetObstacles}
+              </span>
+            </div>
+            <Progress value={levelProgress} className="h-1.5 sm:h-2" />
+          </div>
+        </div>
+      )}
+
+      {/* Boss health bar - shown when boss is active */}
       {(gameState === 'playing' || gameState === 'paused') && bossActive && (
         <div className="absolute top-10 sm:top-11 left-0 right-0 px-2 sm:px-3 z-10">
           <div className="bg-game-field/80 backdrop-blur-sm border border-game-border rounded px-2 py-1">
             <div className="flex items-center justify-between mb-0.5">
               <span className="text-[10px] sm:text-xs font-bold text-destructive">BOSS</span>
-              <span className="text-[10px] sm:text-xs font-bold text-foreground">
+              <span className="text-[10px] sm:text-xs font-bold text-white">
                 {bossHits}/{bossMaxHits}
               </span>
             </div>
@@ -153,6 +179,11 @@ export default function GameOverlay({
       {gameState === 'gameover' && (
         <div className="absolute inset-0 flex items-center justify-center bg-game-field/90 backdrop-blur-sm z-20">
           <div className="text-center space-y-3 sm:space-y-4 px-3">
+            {gameOverReason === 'timeExpired' && (
+              <h2 className="text-4xl sm:text-5xl font-bold text-yellow-400 drop-shadow-lg mb-2 animate-pulse">
+                TIME UP!
+              </h2>
+            )}
             <h2 className="text-3xl sm:text-4xl font-bold text-destructive drop-shadow-lg">GAME OVER</h2>
             <div className="space-y-1 sm:space-y-2">
               <p className="text-base sm:text-lg font-bold text-game-accent">
@@ -208,7 +239,11 @@ export default function GameOverlay({
             />
           </div>
           <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-10">
-            <ShootButton onFireStart={onFireStart} onFireEnd={onFireEnd} />
+            <ShootButton 
+              onFireStart={onFireStart} 
+              onFireEnd={onFireEnd}
+              disabled={gameState !== 'playing'}
+            />
           </div>
         </>
       )}

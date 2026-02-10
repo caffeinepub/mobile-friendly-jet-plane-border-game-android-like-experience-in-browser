@@ -1,47 +1,37 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T13:15:27.818Z",
-  "summary": "REQ-1 and REQ-2 appear implemented: joystick-to-movement mapping was retuned for slower top speed and finer near-center control, and an in-game sensitivity slider with immediate effect and localStorage persistence was added for playing/paused states. The diff summary also indicates additional gameplay/UI/physics changes beyond joystick sensitivity.",
+  "generatedAt": "2026-02-10T14:16:17.503Z",
+  "summary": "REQ-6 and REQ-7 appear to be implemented via a new time-expired game-over reason and UI messaging, plus changes intended to keep obstacles (including boss obstacles) rendered during the 'exploding' transition when time reaches 0. However, the diff also includes several unrelated gameplay-tuning and documentation/state-file changes not requested.",
   "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Gameplay tuning changes unrelated to joystick sensitivity (e.g., bullet speed/cooldown, obstacle speed/spawn tuning, boss hits, etc.).",
-      "reason": "BuildRequest non-goals specify no new/unrelated gameplay mechanics; the diff summary describes multiple non-sensitivity gameplay parameter changes.",
+      "description": "Gameplay tuning changes unrelated to obstacle visibility at time end or displaying a 'TIME UP!' message (e.g., jet/bullet/obstacle constants like size, speed, cooldown).",
+      "reason": "BuildRequest is narrowly focused on obstacle visibility during time-expired transitions and adding a time-expired reason/message; it does not request balance or tuning adjustments.",
       "evidence": [
-        "frontend/src/game/GameScreen.tsx (diff snippet shows many gameplay constants like BULLET_SPEED, FIRE_COOLDOWN, OBSTACLE_SPEED, OBSTACLE_SPAWN_INTERVAL, BOSS_MAX_HITS, etc.)",
-        "frontend-file-summaries.txt (describes bullet appearance/speed changes and other gameplay adjustments)"
+        "frontend/src/game/GameScreen.tsx (constants: JET_SIZE, BULLET_SPEED, FIRE_COOLDOWN, BASE_MOVEMENT_SPEED, OBSTACLE_SPEED, etc.)"
       ]
     },
     {
-      "description": "Collision detection/physics changes unrelated to joystick sensitivity.",
-      "reason": "Not requested by REQ-1/REQ-2; the diff summary explicitly mentions corrected collision detection and hardened collision physics.",
+      "description": "Updates to project tracking/state file (adding AR-1/AR-2 entries marked pending).",
+      "reason": "BuildRequest does not request changes to project_state.json or any project-management metadata.",
       "evidence": [
-        "frontend-file-summaries.txt (\"GameScreen... corrected collision detection...\" and \"obstacleCollisions... Hardened...\")"
+        "project_state.json"
       ]
     },
     {
-      "description": "UI/layout/theming changes unrelated to joystick sensitivity (safe-area handling changes, tailwind color token extensions, playfield border/padding changes, global CSS animation/theming updates).",
-      "reason": "Not requested; BuildRequest scope is joystick sensitivity + in-game control only.",
+      "description": "Broad claims/notes about many other frontend files and features (tailwind tokens, physics helpers, joystick deadzone, explosion variants, etc.) beyond the requested fix scope.",
+      "reason": "These are not requested features; even if they are only documentation, they introduce unrelated feature descriptions into the repo via the modified summary file.",
       "evidence": [
-        "frontend-file-summaries.txt (mentions App.tsx safe-area inset handling, Playfield layout changes, index.css global style changes, tailwind.config.js theme token changes)"
-      ]
-    },
-    {
-      "description": "Player jet and projectile visual size changes unrelated to joystick sensitivity.",
-      "reason": "Not requested; BuildRequest is about movement sensitivity mapping and a sensitivity UI control.",
-      "evidence": [
-        "frontend-file-summaries.txt (mentions PlayerJet size reductions and Bullet visual size changes)"
+        "frontend-file-summaries.txt"
       ]
     }
   ],
-  "confidence": 0.66,
+  "confidence": 0.67,
   "changed_files": [
     "frontend-file-summaries.txt",
     "frontend/src/game/GameScreen.tsx",
-    "frontend/src/game/hooks/useJoystickSensitivity.ts",
     "frontend/src/game/ui/GameOverlay.tsx",
-    "frontend/src/game/utils/joystickMovement.ts",
     "project_state.json"
   ]
 }

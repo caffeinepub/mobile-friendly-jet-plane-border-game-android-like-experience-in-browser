@@ -1,11 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Make the virtual joystick control less sensitive and provide an in-game sensitivity setting that persists locally.
+**Goal:** Keep obstacles visible through the time-expired transition and show a distinct "TIME UP!" game-over message when the level timer reaches 0.
 
 **Planned changes:**
-- Adjust the joystick-to-movement mapping to reduce top speed at full deflection and make near-center input more gradual/precise, while preserving prompt stop on neutral.
-- Add an in-game, English-labeled joystick sensitivity control available during gameplay (playing/paused) that updates movement immediately.
-- Persist the selected sensitivity value in client-side storage (e.g., localStorage) and default it to the newly tuned baseline.
+- Adjust the playfield rendering/state transition so regular obstacles and the boss obstacle remain rendered (with boss red styling) when the timer hits 0, during the 'exploding' transition, until the game-over UI takes over.
+- Add a distinct "time expired" game-over reason and update the game-over overlay messaging to display "TIME UP!" only when the timer reaches 0 (and not for other loss conditions).
 
-**User-visible outcome:** During gameplay, the jet moves more smoothly and less aggressively with the virtual joystick, and players can adjust and save joystick sensitivity without reloading.
+**User-visible outcome:** When the countdown reaches 0, obstacles (including the boss) remain visible during the transition to game over, and the game-over overlay clearly displays "TIME UP!".

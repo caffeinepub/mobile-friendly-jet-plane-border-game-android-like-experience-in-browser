@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T13:15:27.820Z",
+  "generatedAt": "2026-02-10T14:16:17.505Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,29 +11,25 @@
     "implemented": 2,
     "items": [
       {
-        "id": "REQ-1",
-        "summary": "Further reduce the player jet movement sensitivity in response to virtual joystick input by adjusting the joystick-to-movement mapping so that full joystick deflection produces a noticeably slower movement speed and small deflections near center produce finer control.",
+        "id": "REQ-6",
+        "summary": "Ensure regular obstacles and boss obstacles remain visible (do not disappear unexpectedly) when the level timer reaches 0 and the game transitions out of the 'playing' state (e.g., into 'exploding' and then 'gameover').",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/game/utils/joystickMovement.ts",
           "frontend/src/game/GameScreen.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/game/utils/joystickMovement.ts",
           "frontend/src/game/GameScreen.tsx"
         ]
       },
       {
-        "id": "REQ-2",
-        "summary": "Add a user-adjustable joystick sensitivity control in the gameplay UI that lets the player tweak movement sensitivity without code changes, and persist the setting locally so it is retained on refresh.",
+        "id": "REQ-7",
+        "summary": "Add a distinct 'time expired' game-over reason and display a clear 'TIME UP!' message when the countdown reaches 0 (different from other loss conditions such as hitting the border).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/game/hooks/useJoystickSensitivity.ts",
           "frontend/src/game/GameScreen.tsx",
           "frontend/src/game/ui/GameOverlay.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/game/hooks/useJoystickSensitivity.ts",
           "frontend/src/game/GameScreen.tsx",
           "frontend/src/game/ui/GameOverlay.tsx"
         ]
@@ -46,9 +42,7 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/game/GameScreen.tsx",
-    "frontend/src/game/hooks/useJoystickSensitivity.ts",
     "frontend/src/game/ui/GameOverlay.tsx",
-    "frontend/src/game/utils/joystickMovement.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

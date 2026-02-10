@@ -1,6 +1,7 @@
 /**
  * Obstacle-to-obstacle collision physics helper.
  * Implements elastic collision response with position separation to prevent overlap/jitter.
+ * Hardened with bounded solver passes, velocity clamping, and NaN/Infinity guards.
  */
 
 interface Position {
@@ -24,6 +25,7 @@ interface CollisionResult {
 const EPSILON = 0.001; // Small value to prevent division by zero
 const DAMPING = 0.95; // Slight damping to prevent velocity explosions
 const MAX_IMPULSE = 500; // Maximum impulse to prevent unrealistic speeds
+const MAX_VELOCITY = 500; // Maximum velocity component
 
 /**
  * Resolve collision between two circular obstacles.
@@ -122,13 +124,15 @@ export function resolveObstacleCollision(
     newVel2 = { ...vel2 };
   }
 
-  // Guard against NaN/Infinity
-  if (!isFinite(newVel1.x) || !isFinite(newVel1.y)) {
-    newVel1 = { x: 0, y: vel1.y };
-  }
-  if (!isFinite(newVel2.x) || !isFinite(newVel2.y)) {
-    newVel2 = { x: 0, y: vel2.y };
-  }
+  // Guard against NaN/Infinity and clamp velocities
+  const clampVelocity = (v: Velocity): Velocity => {
+    const x = isFinite(v.x) ? Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, v.x)) : 0;
+    const y = isFinite(v.y) ? Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, v.y)) : 0;
+    return { x, y };
+  };
+
+  newVel1 = clampVelocity(newVel1);
+  newVel2 = clampVelocity(newVel2);
 
   // Convert back to percent
   const newPos1: Position = {
