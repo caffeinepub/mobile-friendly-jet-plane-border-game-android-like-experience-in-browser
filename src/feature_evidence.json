@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-player-jet-thruster-flame-so-the-rear-back-side-fire-always-renders-correctly-for-all-facing-angles-0-360-including-when-the-jet-rotates-without-being-clipped-hidden-and-with-the-flame-originating-from-the-jet-s-engine-rear-rather-than-a-screen-relative-bottom-position",
-      "featureTitle": "Fix the player jet thruster/flame so the rear (back-side) fire always renders correctly for all facing angles (0–360°), including when the jet rotates, without being clipped/hidden, and with the flame originating from the jet’s engine/rear rather than a screen-relative “bottom” position.",
+      "featureId": "feature-remove-the-visible-gap-around-the-playfield-so-the-outer-border-sits-flush-to-the-available-screen-area-no-padding-margin-creating-space-outside-the-border-while-keeping-mobile-safe-area-insets-respected",
+      "featureTitle": "Remove the visible gap around the playfield so the outer border sits flush to the available screen area (no padding/margin creating space outside the border), while keeping mobile safe-area insets respected.",
       "files": [
-        "frontend/src/game/entities/PlayerJet.tsx",
+        "frontend/src/App.tsx",
+        "frontend/src/game/Playfield.tsx",
         "frontend/src/index.css"
       ],
       "components": [
@@ -21,10 +22,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-fix-obstacle-to-obstacle-collision-behavior-so-obstacles-consistently-collide-with-each-other-and-separate-properly-including-edge-cases-e-g-overlapping-spawns-near-zero-distance-and-high-relative-speeds-and-ensure-collision-resolution-is-applied-in-the-game-loop-in-a-stable-way-no-tunneling-jitter-explosions-of-velocity",
-      "featureTitle": "Fix obstacle-to-obstacle collision behavior so obstacles consistently collide with each other and separate properly, including edge cases (e.g., overlapping spawns, near-zero distance, and high relative speeds), and ensure collision resolution is applied in the game loop in a stable way (no tunneling/jitter/explosions of velocity).",
+      "featureId": "feature-adjust-the-playfield-border-corner-styling-so-borders-are-cleanly-aligned-to-all-four-corners-with-no-visual-discontinuities-or-inset-gaps-at-the-corners-including-the-corner-accent-elements",
+      "featureTitle": "Adjust the playfield border/corner styling so borders are cleanly aligned to all four corners with no visual discontinuities or inset gaps at the corners (including the corner accent elements).",
       "files": [
-        "frontend/src/game/physics/obstacleCollisions.ts"
+        "frontend/src/game/Playfield.tsx",
+        "frontend/src/index.css"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -39,11 +41,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-make-the-hud-progress-bar-and-boss-bar-when-shown-compact-for-mobile-landscape-reduce-its-visual-width-and-overall-footprint-so-it-no-longer-spans-the-full-screen-width-while-keeping-the-same-progress-values-and-readability",
-      "featureTitle": "Make the HUD progress bar (and boss bar when shown) compact for mobile landscape: reduce its visual width and overall footprint so it no longer spans the full screen width, while keeping the same progress values and readability.",
+      "featureId": "feature-make-the-in-game-ui-more-compact-overall-by-reducing-the-on-screen-footprint-of-the-hud-score-level-timer-progress-bars-pause-button-shoot-button-and-virtual-joystick-while-keeping-them-readable-and-touchable-on-mobile",
+      "featureTitle": "Make the in-game UI more compact overall by reducing the on-screen footprint of the HUD (score/level/timer), progress bars, pause button, shoot button, and virtual joystick, while keeping them readable and touchable on mobile.",
       "files": [
         "frontend/src/game/ui/GameOverlay.tsx",
-        "frontend/src/index.css"
+        "frontend/src/game/ui/ShootButton.tsx",
+        "frontend/src/game/ui/VirtualJoystick.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -58,13 +61,11 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-adjust-overall-in-game-ui-sizing-for-mobile-devices-so-all-hud-and-controls-score-panel-timer-panel-pause-button-progress-boss-bar-joystick-shoot-button-appear-smaller-and-better-fit-mobile-landscape-screens-without-overlapping-the-playfield-or-each-other",
-      "featureTitle": "Adjust overall in-game UI sizing for mobile devices so all HUD and controls (score panel, timer panel, pause button, progress/boss bar, joystick, shoot button) appear smaller and better fit mobile landscape screens without overlapping the playfield or each other.",
+      "featureId": "feature-ensure-gameplay-bounds-and-effective-playable-area-match-the-updated-border-gap-behavior-so-there-is-no-extra-dead-space-between-the-visible-border-and-the-area-where-the-player-obstacles-can-move-i-e-adjust-any-playfield-padding-bounds-calculations-accordingly",
+      "featureTitle": "Ensure gameplay bounds and effective playable area match the updated border/gap behavior so there is no extra 'dead space' between the visible border and the area where the player/obstacles can move (i.e., adjust any playfield padding/bounds calculations accordingly).",
       "files": [
-        "frontend/src/game/ui/GameOverlay.tsx",
-        "frontend/src/game/ui/ShootButton.tsx",
-        "frontend/src/game/ui/VirtualJoystick.tsx",
-        "frontend/src/index.css"
+        "frontend/src/game/GameScreen.tsx",
+        "frontend/src/game/Playfield.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -75,26 +76,6 @@
       ],
       "testIds": [
         "REQ-4"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-the-game-always-opens-and-stays-in-horizontal-landscape-on-mobile-implement-a-landscape-enforcement-flow-that-a-attempts-to-lock-orientation-to-landscape-when-supported-and-b-when-portrait-is-detected-shows-a-blocking-rotate-to-landscape-overlay-and-prevents-gameplay-input-updates-until-the-device-is-in-landscape",
-      "featureTitle": "Ensure the game always opens and stays in horizontal landscape on mobile: implement a landscape enforcement flow that (a) attempts to lock orientation to landscape when supported, and (b) when portrait is detected, shows a blocking “rotate to landscape” overlay and prevents gameplay input/updates until the device is in landscape.",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/game/ui/OrientationGuard.tsx",
-        "frontend/src/index.css"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
       ],
       "confidence": "high"
     }

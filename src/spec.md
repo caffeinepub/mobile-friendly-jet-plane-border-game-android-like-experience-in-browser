@@ -1,13 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix jet thruster rendering across all rotations, stabilize obstacle-to-obstacle collisions, improve mobile landscape HUD/control sizing, and enforce landscape-only gameplay on mobile.
+**Goal:** Remove outer gaps around the playfield border and make the in-game UI more compact while keeping safe-area insets and gameplay bounds correct.
 
 **Planned changes:**
-- Update the jet thruster/flame rendering so it stays attached to the jet’s rear for any 0–360° rotation, renders behind the jet body, and is not clipped; keep the current behavior of rendering only while thrusting.
-- Stabilize obstacle-to-obstacle collision detection and resolution to reliably separate overlapping obstacles (including overlapping spawns/near-zero distances/high relative speeds) without NaN/Infinity, tunneling, jitter, or unrealistic velocity spikes.
-- Make the HUD progress bar (and boss bar when shown) more compact on mobile landscape by constraining max width, centering it, and reducing padding/text sizing while preserving progress values and fill behavior.
-- Scale down overall in-game UI on mobile landscape (HUD panels and touch controls) so it fits without overlapping and remains fully usable via touch.
-- Add a mobile landscape enforcement flow: best-effort orientation lock to landscape when supported, and a blocking “rotate to landscape” overlay that pauses/blocks gameplay until landscape is detected.
+- Update playfield container/layout styles to eliminate any padding/margins that create visible space outside the outer border, while still applying mobile safe-area insets via `env(safe-area-inset-*)`.
+- Refine border and corner-accent styling so all four corners align cleanly with the main border (no 1–2px seams/gaps) and the playfield background/grid remain correctly clipped inside.
+- Reduce overall HUD footprint (score/level/timer), progress bars, pause button, shoot button, and virtual joystick sizing/padding to be more compact while staying readable and touch-friendly on mobile.
+- Adjust playfield bounds/padding calculations so the playable area matches the updated border (no extra “dead space” between the visible border and movement/collision limits), without introducing scrolling or new collision/clamping issues.
 
-**User-visible outcome:** The jet’s thruster flame looks correct at all angles, obstacles visibly collide and separate reliably, mobile landscape UI takes up less space and doesn’t overlap, and on mobile the game blocks in portrait with a rotate-to-landscape overlay until the device is in landscape.
+**User-visible outcome:** The playfield border sits flush to the screen/container edges (except for safe-area insets), corners look continuous, and the HUD/controls take up less space without breaking touch usability or gameplay bounds.

@@ -1,83 +1,70 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T09:14:22.803Z",
+  "generatedAt": "2026-02-10T11:24:09.615Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
-    "implemented": 5,
+    "total": 4,
+    "implemented": 4,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the player jet thruster/flame so the rear (back-side) fire always renders correctly for all facing angles (0–360°), including when the jet rotates, without being clipped/hidden, and with the flame originating from the jet’s engine/rear rather than a screen-relative “bottom” position.",
+        "summary": "Remove the visible gap around the playfield so the outer border sits flush to the available screen area (no padding/margin creating space outside the border), while keeping mobile safe-area insets respected.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/game/entities/PlayerJet.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/game/Playfield.tsx",
           "frontend/src/index.css"
         ],
         "matchedFiles": [
-          "frontend/src/game/entities/PlayerJet.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/game/Playfield.tsx",
           "frontend/src/index.css"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Fix obstacle-to-obstacle collision behavior so obstacles consistently collide with each other and separate properly, including edge cases (e.g., overlapping spawns, near-zero distance, and high relative speeds), and ensure collision resolution is applied in the game loop in a stable way (no tunneling/jitter/explosions of velocity).",
+        "summary": "Adjust the playfield border/corner styling so borders are cleanly aligned to all four corners with no visual discontinuities or inset gaps at the corners (including the corner accent elements).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/game/physics/obstacleCollisions.ts",
-          "frontend/src/game/GameScreen.tsx"
+          "frontend/src/game/Playfield.tsx",
+          "frontend/src/index.css"
         ],
         "matchedFiles": [
-          "frontend/src/game/physics/obstacleCollisions.ts"
+          "frontend/src/game/Playfield.tsx",
+          "frontend/src/index.css"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Make the HUD progress bar (and boss bar when shown) compact for mobile landscape: reduce its visual width and overall footprint so it no longer spans the full screen width, while keeping the same progress values and readability.",
+        "summary": "Make the in-game UI more compact overall by reducing the on-screen footprint of the HUD (score/level/timer), progress bars, pause button, shoot button, and virtual joystick, while keeping them readable and touchable on mobile.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/game/ui/GameOverlay.tsx",
-          "frontend/src/index.css"
+          "frontend/src/game/ui/ShootButton.tsx",
+          "frontend/src/game/ui/VirtualJoystick.tsx"
         ],
         "matchedFiles": [
           "frontend/src/game/ui/GameOverlay.tsx",
-          "frontend/src/index.css"
+          "frontend/src/game/ui/ShootButton.tsx",
+          "frontend/src/game/ui/VirtualJoystick.tsx"
         ]
       },
       {
         "id": "REQ-4",
-        "summary": "Adjust overall in-game UI sizing for mobile devices so all HUD and controls (score panel, timer panel, pause button, progress/boss bar, joystick, shoot button) appear smaller and better fit mobile landscape screens without overlapping the playfield or each other.",
+        "summary": "Ensure gameplay bounds and effective playable area match the updated border/gap behavior so there is no extra 'dead space' between the visible border and the area where the player/obstacles can move (i.e., adjust any playfield padding/bounds calculations accordingly).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/game/ui/GameOverlay.tsx",
-          "frontend/src/game/ui/VirtualJoystick.tsx",
-          "frontend/src/game/ui/ShootButton.tsx",
-          "frontend/src/index.css"
+          "frontend/src/game/GameScreen.tsx",
+          "frontend/src/game/physics/bounds.ts",
+          "frontend/src/game/Playfield.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/game/ui/GameOverlay.tsx",
-          "frontend/src/game/ui/VirtualJoystick.tsx",
-          "frontend/src/game/ui/ShootButton.tsx",
-          "frontend/src/index.css"
-        ]
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Ensure the game always opens and stays in horizontal landscape on mobile: implement a landscape enforcement flow that (a) attempts to lock orientation to landscape when supported, and (b) when portrait is detected, shows a blocking “rotate to landscape” overlay and prevents gameplay input/updates until the device is in landscape.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/game/ui/OrientationGuard.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/index.css"
-        ],
-        "matchedFiles": [
-          "frontend/src/game/ui/OrientationGuard.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/index.css"
+          "frontend/src/game/GameScreen.tsx",
+          "frontend/src/game/Playfield.tsx"
         ]
       }
     ]
@@ -88,10 +75,9 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/App.tsx",
-    "frontend/src/game/entities/PlayerJet.tsx",
-    "frontend/src/game/physics/obstacleCollisions.ts",
+    "frontend/src/game/GameScreen.tsx",
+    "frontend/src/game/Playfield.tsx",
     "frontend/src/game/ui/GameOverlay.tsx",
-    "frontend/src/game/ui/OrientationGuard.tsx",
     "frontend/src/game/ui/ShootButton.tsx",
     "frontend/src/game/ui/VirtualJoystick.tsx",
     "frontend/src/index.css",

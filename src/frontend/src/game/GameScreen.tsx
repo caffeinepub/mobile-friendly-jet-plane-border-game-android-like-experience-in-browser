@@ -43,9 +43,8 @@ interface ExplosionData {
   variant: 'hit' | 'player' | 'bomb';
 }
 
-const PLAYFIELD_PADDING = 40; // Space for borders
-const JET_SIZE = 40; // Reduced for mobile - half of sprite size for collision
-const BULLET_SPEED = 300; // Pixels per second - FAST speed
+const JET_SIZE = 32; // Reduced for mobile - smaller collision radius
+const BULLET_SPEED = 400; // Increased from 300 - bullets travel faster
 const FIRE_COOLDOWN = 200; // Milliseconds between shots - medium cadence
 const MOVEMENT_SPEED = 180; // Pixels per second - FAST speed
 const OBSTACLE_SPEED = 120; // Base speed in pixels per second - FAST speed
@@ -53,13 +52,14 @@ const OBSTACLE_SIZE_SMALL = 18; // Small obstacle collision radius
 const OBSTACLE_SIZE_MEDIUM = 24; // Medium obstacle collision radius
 const OBSTACLE_SIZE_LARGE = 30; // Large obstacle collision radius
 const BOSS_SIZE = 50; // Boss obstacle collision radius
-const BULLET_SIZE = 6; // Reduced for mobile - half size for collision detection
+const BULLET_SIZE = 4; // Reduced from 6 for smaller bullets
 const EXPLOSION_DURATION = 800; // Milliseconds before transitioning to game over
 const OBSTACLE_SPAWN_INTERVAL = 1000; // Spawn one obstacle every 1000ms (1 second)
 const MAX_DELTA_TIME = 100; // Clamp delta to avoid huge jumps after tab switches
 const HIT_EFFECT_DURATION = 300; // Duration for bullet hit effects
 const BULLET_SPAWN_OFFSET = 30; // Pixels ahead of jet nose for bullet spawn (tuned for visual muzzle)
-const MOVEMENT_THRESHOLD = 0.1; // Joystick magnitude threshold to show thruster
+const MOVEMENT_THRESHOLD = 0.01; // Minimal threshold - joystick always controls movement
+const FACING_THRESHOLD = 0.1; // Threshold for updating facing angle
 const BOSS_MAX_HITS = 15; // Boss requires 15 hits to defeat
 const OBSTACLES_PER_LEVEL = 5; // Base number of obstacles per level (multiplied by level)
 
@@ -86,6 +86,7 @@ export default function GameScreen() {
   const [bossActive, setBossActive] = useState(false);
   const [bossHits, setBossHits] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0); // Countdown timer in seconds
+  const [joystickResetToken, setJoystickResetToken] = useState(0); // Token to trigger joystick reset
   const containerRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const bulletIdRef = useRef(0);
@@ -121,14 +122,14 @@ export default function GameScreen() {
     }
   }, [gameState, level]);
 
-  // Measure playfield size
+  // Measure playfield size - now uses full container size
   useEffect(() => {
     const updateSize = () => {
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
         setPlayfieldSize({
-          width: rect.width - PLAYFIELD_PADDING * 2,
-          height: rect.height - PLAYFIELD_PADDING * 2,
+          width: rect.width,
+          height: rect.height,
         });
       }
     };
@@ -138,19 +139,32 @@ export default function GameScreen() {
     return () => window.removeEventListener('resize', updateSize);
   }, []);
 
+  // Reset joystick and firing when leaving playing state
+  useEffect(() => {
+    if (gameState !== 'playing') {
+      // Reset joystick vector
+      joystickVectorRef.current = { x: 0, y: 0, magnitude: 0 };
+      setIsThrusting(false);
+      // Increment reset token to trigger joystick component reset
+      setJoystickResetToken(prev => prev + 1);
+      // Stop firing
+      isFiringRef.current = false;
+    }
+  }, [gameState]);
+
   // Handle joystick movement
   const handleJoystickMove = useCallback((vector: { x: number; y: number; magnitude: number }) => {
     joystickVectorRef.current = vector;
     
-    // Update facing angle based on joystick direction
-    if (vector.magnitude > 0.1) {
+    // Update facing angle based on joystick direction (only when moving)
+    if (vector.magnitude > FACING_THRESHOLD) {
       const angleRad = Math.atan2(vector.x, -vector.y);
       const angleDeg = (angleRad * 180) / Math.PI;
       setFacingAngle(angleDeg);
-      setIsThrusting(true);
-    } else {
-      setIsThrusting(false);
     }
+    
+    // Show thruster when joystick is active
+    setIsThrusting(vector.magnitude > MOVEMENT_THRESHOLD);
   }, []);
 
   const handleJoystickNeutral = useCallback(() => {
@@ -289,6 +303,9 @@ export default function GameScreen() {
     lastFrameTimeRef.current = performance.now();
     isFiringRef.current = false;
     fireAccumulatorRef.current = 0;
+    // Reset joystick
+    joystickVectorRef.current = { x: 0, y: 0, magnitude: 0 };
+    setJoystickResetToken(prev => prev + 1);
   }, []);
 
   // Pause game
@@ -319,6 +336,9 @@ export default function GameScreen() {
     lastFrameTimeRef.current = performance.now();
     isFiringRef.current = false;
     fireAccumulatorRef.current = 0;
+    // Reset joystick
+    joystickVectorRef.current = { x: 0, y: 0, magnitude: 0 };
+    setJoystickResetToken(prev => prev + 1);
   }, []);
 
   // Game loop
@@ -361,7 +381,7 @@ export default function GameScreen() {
         }
       }
 
-      // Update player position based on joystick
+      // Update player position based on joystick (always respond to joystick input)
       const joystick = joystickVectorRef.current;
       if (joystick.magnitude > MOVEMENT_THRESHOLD && playfieldSize.width > 0) {
         const moveDistance = MOVEMENT_SPEED * deltaSeconds;
@@ -444,51 +464,18 @@ export default function GameScreen() {
           };
         });
 
-        // Reflect obstacles at horizontal bounds
-        updated = updated.map((obstacle) => {
-          const obstacleRadius = obstacle.isBoss
-            ? BOSS_SIZE
-            : obstacle.size === 'small'
-              ? OBSTACLE_SIZE_SMALL
-              : obstacle.size === 'medium'
-                ? OBSTACLE_SIZE_MEDIUM
-                : OBSTACLE_SIZE_LARGE;
-
-          const reflected = reflectAtBounds(
-            obstacle.position,
-            obstacle.velocity,
-            playfieldSize.width,
-            playfieldSize.height,
-            obstacleRadius
-          );
-          return {
-            ...obstacle,
-            position: reflected.position,
-            velocity: reflected.velocity,
-          };
-        });
-
-        // Resolve obstacle-to-obstacle collisions
+        // Obstacle-to-obstacle collision resolution
         for (let i = 0; i < updated.length; i++) {
           for (let j = i + 1; j < updated.length; j++) {
             const obstacleA = updated[i];
             const obstacleB = updated[j];
 
-            const radiusA = obstacleA.isBoss
-              ? BOSS_SIZE
-              : obstacleA.size === 'small'
-                ? OBSTACLE_SIZE_SMALL
-                : obstacleA.size === 'medium'
-                  ? OBSTACLE_SIZE_MEDIUM
-                  : OBSTACLE_SIZE_LARGE;
-
-            const radiusB = obstacleB.isBoss
-              ? BOSS_SIZE
-              : obstacleB.size === 'small'
-                ? OBSTACLE_SIZE_SMALL
-                : obstacleB.size === 'medium'
-                  ? OBSTACLE_SIZE_MEDIUM
-                  : OBSTACLE_SIZE_LARGE;
+            const radiusA = obstacleA.isBoss ? BOSS_SIZE : 
+              obstacleA.size === 'small' ? OBSTACLE_SIZE_SMALL :
+              obstacleA.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
+            const radiusB = obstacleB.isBoss ? BOSS_SIZE :
+              obstacleB.size === 'small' ? OBSTACLE_SIZE_SMALL :
+              obstacleB.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
 
             const result = resolveObstacleCollision(
               obstacleA.position,
@@ -508,20 +495,32 @@ export default function GameScreen() {
           }
         }
 
-        // Remove obstacles that are out of bounds
-        return updated.filter((obstacle) => {
-          const obstacleRadius = obstacle.isBoss
-            ? BOSS_SIZE
-            : obstacle.size === 'small'
-              ? OBSTACLE_SIZE_SMALL
-              : obstacle.size === 'medium'
-                ? OBSTACLE_SIZE_MEDIUM
-                : OBSTACLE_SIZE_LARGE;
-          return !isOutOfBounds(obstacle.position, playfieldSize.width, playfieldSize.height, obstacleRadius);
+        // Reflect obstacles at bounds
+        updated = updated.map((obstacle) => {
+          const radius = obstacle.isBoss ? BOSS_SIZE :
+            obstacle.size === 'small' ? OBSTACLE_SIZE_SMALL :
+            obstacle.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
+
+          const reflected = reflectAtBounds(
+            obstacle.position,
+            obstacle.velocity,
+            playfieldSize.width,
+            playfieldSize.height,
+            radius
+          );
+
+          return {
+            ...obstacle,
+            position: reflected.position,
+            velocity: reflected.velocity,
+          };
         });
+
+        // Remove obstacles that are out of bounds (bottom edge only)
+        return updated.filter((obstacle) => obstacle.position.y < 110);
       });
 
-      // Check bullet-obstacle collisions
+      // Collision detection: bullets vs obstacles
       setBullets((prevBullets) => {
         const remainingBullets = [...prevBullets];
         const bulletsToRemove = new Set<number>();
@@ -532,77 +531,58 @@ export default function GameScreen() {
 
           for (const bullet of remainingBullets) {
             for (const obstacle of remainingObstacles) {
-              if (bulletsToRemove.has(bullet.id) || obstaclesToRemove.has(obstacle.id)) continue;
+              const obstacleRadius = obstacle.isBoss ? BOSS_SIZE :
+                obstacle.size === 'small' ? OBSTACLE_SIZE_SMALL :
+                obstacle.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
 
-              const obstacleRadius = obstacle.isBoss
-                ? BOSS_SIZE
-                : obstacle.size === 'small'
-                  ? OBSTACLE_SIZE_SMALL
-                  : obstacle.size === 'medium'
-                    ? OBSTACLE_SIZE_MEDIUM
-                    : OBSTACLE_SIZE_LARGE;
-
-              const dx =
-                ((bullet.position.x - obstacle.position.x) * playfieldSize.width) / 100;
-              const dy =
-                ((bullet.position.y - obstacle.position.y) * playfieldSize.height) / 100;
+              const dx = (bullet.position.x - obstacle.position.x) * playfieldSize.width / 100;
+              const dy = (bullet.position.y - obstacle.position.y) * playfieldSize.height / 100;
               const distance = Math.sqrt(dx * dx + dy * dy);
 
               if (distance < BULLET_SIZE + obstacleRadius) {
                 bulletsToRemove.add(bullet.id);
 
+                // Handle boss hits
                 if (obstacle.isBoss) {
-                  // Boss hit
                   setBossHits((prev) => {
                     const newHits = prev + 1;
                     if (newHits >= BOSS_MAX_HITS) {
-                      // Boss defeated
                       obstaclesToRemove.add(obstacle.id);
-                      setScore((s) => s + 100);
-                      const explosionId = explosionIdRef.current++;
-                      setExplosions((e) => [
-                        ...e,
-                        { id: explosionId, position: obstacle.position, variant: 'bomb' },
-                      ]);
-                      effectTimersRef.current.set(
-                        explosionId,
-                        window.setTimeout(() => {
-                          setExplosions((e) => e.filter((ex) => ex.id !== explosionId));
-                          effectTimersRef.current.delete(explosionId);
-                        }, HIT_EFFECT_DURATION)
-                      );
                       setBossActive(false);
                       bossIdRef.current = null;
+                      setScore((s) => s + 100);
                       setGameState('levelcomplete');
+                      const explosionId = explosionIdRef.current++;
+                      setExplosions((prev) => [
+                        ...prev,
+                        { id: explosionId, position: obstacle.position, variant: 'bomb' },
+                      ]);
                     }
                     return newHits;
                   });
                 } else {
-                  // Regular obstacle hit
                   obstaclesToRemove.add(obstacle.id);
-                  setDestroyedThisLevel((d) => d + 1);
-
-                  const scoreValue =
-                    obstacle.size === 'small'
-                      ? SCORE_SMALL
-                      : obstacle.size === 'medium'
-                        ? SCORE_MEDIUM
-                        : SCORE_LARGE;
-                  setScore((s) => s + scoreValue);
-
-                  const explosionId = explosionIdRef.current++;
-                  setExplosions((e) => [
-                    ...e,
-                    { id: explosionId, position: obstacle.position, variant: 'hit' },
-                  ]);
-                  effectTimersRef.current.set(
-                    explosionId,
-                    window.setTimeout(() => {
-                      setExplosions((e) => e.filter((ex) => ex.id !== explosionId));
-                      effectTimersRef.current.delete(explosionId);
-                    }, HIT_EFFECT_DURATION)
-                  );
+                  setDestroyedThisLevel((prev) => prev + 1);
+                  const scoreValue = obstacle.size === 'small' ? SCORE_SMALL :
+                    obstacle.size === 'medium' ? SCORE_MEDIUM : SCORE_LARGE;
+                  setScore((prev) => prev + scoreValue);
                 }
+
+                // Create hit explosion
+                const explosionId = explosionIdRef.current++;
+                setExplosions((prev) => [
+                  ...prev,
+                  { id: explosionId, position: obstacle.position, variant: 'hit' },
+                ]);
+
+                // Schedule removal of hit effect
+                effectTimersRef.current.set(
+                  explosionId,
+                  window.setTimeout(() => {
+                    setExplosions((prev) => prev.filter((e) => e.id !== explosionId));
+                    effectTimersRef.current.delete(explosionId);
+                  }, HIT_EFFECT_DURATION)
+                );
 
                 break;
               }
@@ -615,26 +595,20 @@ export default function GameScreen() {
         return remainingBullets.filter((b) => !bulletsToRemove.has(b.id));
       });
 
-      // Check player-obstacle collisions
+      // Collision detection: player vs obstacles
       setObstacles((prevObstacles) => {
         for (const obstacle of prevObstacles) {
-          const obstacleRadius = obstacle.isBoss
-            ? BOSS_SIZE
-            : obstacle.size === 'small'
-              ? OBSTACLE_SIZE_SMALL
-              : obstacle.size === 'medium'
-                ? OBSTACLE_SIZE_MEDIUM
-                : OBSTACLE_SIZE_LARGE;
+          const obstacleRadius = obstacle.isBoss ? BOSS_SIZE :
+            obstacle.size === 'small' ? OBSTACLE_SIZE_SMALL :
+            obstacle.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
 
-          const dx =
-            ((playerPosRef.current.x - obstacle.position.x) * playfieldSize.width) / 100;
-          const dy =
-            ((playerPosRef.current.y - obstacle.position.y) * playfieldSize.height) / 100;
+          const dx = (playerPosRef.current.x - obstacle.position.x) * playfieldSize.width / 100;
+          const dy = (playerPosRef.current.y - obstacle.position.y) * playfieldSize.height / 100;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           if (distance < JET_SIZE + obstacleRadius) {
-            // Check if it's a full hit
-            const hitResult = isFullHit(
+            // Check if this is a full hit
+            const fullHit = isFullHit(
               playerPosRef.current,
               JET_SIZE,
               obstacle.position,
@@ -643,8 +617,7 @@ export default function GameScreen() {
               playfieldSize.height
             );
 
-            if (hitResult) {
-              // Game over
+            if (fullHit) {
               setGameState('exploding');
               const explosionId = explosionIdRef.current++;
               setExplosions((prev) => [
@@ -658,7 +631,6 @@ export default function GameScreen() {
             }
           }
         }
-
         return prevObstacles;
       });
 
@@ -671,41 +643,31 @@ export default function GameScreen() {
       if (animationFrameRef.current !== null) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-    };
-  }, [
-    gameState,
-    playfieldSize,
-    spawnBullet,
-    spawnObstacle,
-    spawnBoss,
-    level,
-    destroyedThisLevel,
-    bossActive,
-  ]);
-
-  // Cleanup explosion timer on unmount
-  useEffect(() => {
-    return () => {
       if (explosionTimerRef.current !== null) {
         clearTimeout(explosionTimerRef.current);
       }
-      effectTimersRef.current.forEach((timer) => clearTimeout(timer));
     };
-  }, []);
-
-  const targetObstacles = OBSTACLES_PER_LEVEL * level;
+  }, [gameState, playfieldSize, spawnBullet, spawnObstacle, spawnBoss, level, bossActive, destroyedThisLevel]);
 
   return (
-    <div ref={containerRef} className="relative w-full h-full">
+    <div ref={containerRef} className="relative h-full w-full">
       <Playfield>
         {/* Player jet */}
         {(gameState === 'playing' || gameState === 'paused') && (
-          <PlayerJet position={playerPos} rotation={facingAngle} isThrusting={isThrusting} />
+          <PlayerJet
+            position={playerPos}
+            rotation={facingAngle}
+            isThrusting={isThrusting}
+          />
         )}
 
         {/* Bullets */}
         {bullets.map((bullet) => (
-          <Bullet key={bullet.id} position={bullet.position} rotation={bullet.angle} />
+          <Bullet
+            key={bullet.id}
+            position={bullet.position}
+            rotation={bullet.angle}
+          />
         ))}
 
         {/* Obstacles */}
@@ -720,7 +682,11 @@ export default function GameScreen() {
 
         {/* Explosions */}
         {explosions.map((explosion) => (
-          <Explosion key={explosion.id} position={explosion.position} variant={explosion.variant} />
+          <Explosion
+            key={explosion.id}
+            position={explosion.position}
+            variant={explosion.variant}
+          />
         ))}
       </Playfield>
 
@@ -729,12 +695,10 @@ export default function GameScreen() {
         gameState={gameState}
         score={score}
         level={level}
-        destroyed={destroyedThisLevel}
-        target={targetObstacles}
+        timeRemaining={timeRemaining}
         bossActive={bossActive}
         bossHits={bossHits}
         bossMaxHits={BOSS_MAX_HITS}
-        timeRemaining={timeRemaining}
         onStart={startGame}
         onPause={pauseGame}
         onResume={resumeGame}
@@ -743,6 +707,7 @@ export default function GameScreen() {
         onJoystickNeutral={handleJoystickNeutral}
         onFireStart={handleFireStart}
         onFireEnd={handleFireEnd}
+        joystickResetToken={joystickResetToken}
       />
     </div>
   );

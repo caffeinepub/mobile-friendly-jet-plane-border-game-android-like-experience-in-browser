@@ -6,13 +6,13 @@ interface PlayfieldProps {
 
 export default function Playfield({ children }: PlayfieldProps) {
   return (
-    <div className="relative h-full w-full flex items-center justify-center p-4 sm:p-6 md:p-10">
-      <div className="relative w-full h-full border-4 sm:border-[6px] border-game-border rounded-lg bg-game-field shadow-game overflow-hidden">
-        {/* Corner accents */}
-        <div className="absolute top-0 left-0 w-6 h-6 sm:w-8 sm:h-8 border-t-4 sm:border-t-[6px] border-l-4 sm:border-l-[6px] border-game-accent rounded-tl-lg" />
-        <div className="absolute top-0 right-0 w-6 h-6 sm:w-8 sm:h-8 border-t-4 sm:border-t-[6px] border-r-4 sm:border-r-[6px] border-game-accent rounded-tr-lg" />
-        <div className="absolute bottom-0 left-0 w-6 h-6 sm:w-8 sm:h-8 border-b-4 sm:border-b-[6px] border-l-4 sm:border-l-[6px] border-game-accent rounded-bl-lg" />
-        <div className="absolute bottom-0 right-0 w-6 h-6 sm:w-8 sm:h-8 border-b-4 sm:border-b-[6px] border-r-4 sm:border-r-[6px] border-game-accent rounded-br-lg" />
+    <div className="relative h-full w-full">
+      <div className="relative w-full h-full border-[3px] sm:border-4 border-game-border rounded-none bg-game-field shadow-game overflow-hidden">
+        {/* Corner accents - positioned to meet border cleanly */}
+        <div className="absolute top-[-1px] left-[-1px] w-4 h-4 sm:w-5 sm:h-5 border-t-[3px] sm:border-t-4 border-l-[3px] sm:border-l-4 border-game-accent" />
+        <div className="absolute top-[-1px] right-[-1px] w-4 h-4 sm:w-5 sm:h-5 border-t-[3px] sm:border-t-4 border-r-[3px] sm:border-r-4 border-game-accent" />
+        <div className="absolute bottom-[-1px] left-[-1px] w-4 h-4 sm:w-5 sm:h-5 border-b-[3px] sm:border-b-4 border-l-[3px] sm:border-l-4 border-game-accent" />
+        <div className="absolute bottom-[-1px] right-[-1px] w-4 h-4 sm:w-5 sm:h-5 border-b-[3px] sm:border-b-4 border-r-[3px] sm:border-r-4 border-game-accent" />
 
         {/* Grid pattern overlay */}
         <div

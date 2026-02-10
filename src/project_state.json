@@ -1,56 +1,44 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Mobile-focused jet shooter game needs visual/UI scaling fixes and gameplay bug fixes, plus enforcing always-on horizontal landscape orientation.",
+  "summary": "Web game project with focus on mobile-friendly play, including offline testing via PWA/APK wrapping, plus UI layout refinements (smaller sizing and border/gap fixes).",
   "architectural_notes": [
-    "Target mobile-first responsive UI scaling (HUD elements, progress bar) to fit small screens in landscape.",
-    "Enforce landscape-only orientation at app/game container level for consistent mobile gameplay."
+    "Consider adding PWA support (web app manifest + service worker) to allow offline caching and easier APK wrapping for Android testing."
   ],
   "known_issues": [
-    "Back-side of fire effect not appearing properly.",
-    "Obstacle-to-obstacle collisions not working properly.",
-    "Progress bar too wide; overall UI needs to be smaller for mobile devices.",
-    "Game does not always open in horizontal landscape orientation."
+    "UI currently has oversized elements and border spacing/gaps that should be removed for a tighter layout."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-fix-the-player-jet-thruster-flame-so-the-rear-back-side-fire-always-renders-correctly-for-all-facing-angles-0-360-including-when-the-jet-rotates-without-being-clipped-hidden-and-with-the-flame-originating-from-the-jet-s-engine-rear-rather-than-a-screen-relative-bottom-position",
-      "title": "Fix the player jet thruster/flame so the rear (back-side) fire always renders correctly for all facing angles (0–360°), including when the jet rotates, without being clipped/hidden, and with the flame originating from the jet’s engine/rear rather than a screen-relative “bottom” position.",
+      "id": "feature-remove-the-visible-gap-around-the-playfield-so-the-outer-border-sits-flush-to-the-available-screen-area-no-padding-margin-creating-space-outside-the-border-while-keeping-mobile-safe-area-insets-respected",
+      "title": "Remove the visible gap around the playfield so the outer border sits flush to the available screen area (no padding/margin creating space outside the border), while keeping mobile safe-area insets respected.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-fix-obstacle-to-obstacle-collision-behavior-so-obstacles-consistently-collide-with-each-other-and-separate-properly-including-edge-cases-e-g-overlapping-spawns-near-zero-distance-and-high-relative-speeds-and-ensure-collision-resolution-is-applied-in-the-game-loop-in-a-stable-way-no-tunneling-jitter-explosions-of-velocity",
-      "title": "Fix obstacle-to-obstacle collision behavior so obstacles consistently collide with each other and separate properly, including edge cases (e.g., overlapping spawns, near-zero distance, and high relative speeds), and ensure collision resolution is applied in the game loop in a stable way (no tunneling/jitter/explosions of velocity).",
+      "id": "feature-adjust-the-playfield-border-corner-styling-so-borders-are-cleanly-aligned-to-all-four-corners-with-no-visual-discontinuities-or-inset-gaps-at-the-corners-including-the-corner-accent-elements",
+      "title": "Adjust the playfield border/corner styling so borders are cleanly aligned to all four corners with no visual discontinuities or inset gaps at the corners (including the corner accent elements).",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-make-the-hud-progress-bar-and-boss-bar-when-shown-compact-for-mobile-landscape-reduce-its-visual-width-and-overall-footprint-so-it-no-longer-spans-the-full-screen-width-while-keeping-the-same-progress-values-and-readability",
-      "title": "Make the HUD progress bar (and boss bar when shown) compact for mobile landscape: reduce its visual width and overall footprint so it no longer spans the full screen width, while keeping the same progress values and readability.",
+      "id": "feature-make-the-in-game-ui-more-compact-overall-by-reducing-the-on-screen-footprint-of-the-hud-score-level-timer-progress-bars-pause-button-shoot-button-and-virtual-joystick-while-keeping-them-readable-and-touchable-on-mobile",
+      "title": "Make the in-game UI more compact overall by reducing the on-screen footprint of the HUD (score/level/timer), progress bars, pause button, shoot button, and virtual joystick, while keeping them readable and touchable on mobile.",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
     },
     {
-      "id": "feature-adjust-overall-in-game-ui-sizing-for-mobile-devices-so-all-hud-and-controls-score-panel-timer-panel-pause-button-progress-boss-bar-joystick-shoot-button-appear-smaller-and-better-fit-mobile-landscape-screens-without-overlapping-the-playfield-or-each-other",
-      "title": "Adjust overall in-game UI sizing for mobile devices so all HUD and controls (score panel, timer panel, pause button, progress/boss bar, joystick, shoot button) appear smaller and better fit mobile landscape screens without overlapping the playfield or each other.",
+      "id": "feature-ensure-gameplay-bounds-and-effective-playable-area-match-the-updated-border-gap-behavior-so-there-is-no-extra-dead-space-between-the-visible-border-and-the-area-where-the-player-obstacles-can-move-i-e-adjust-any-playfield-padding-bounds-calculations-accordingly",
+      "title": "Ensure gameplay bounds and effective playable area match the updated border/gap behavior so there is no extra 'dead space' between the visible border and the area where the player/obstacles can move (i.e., adjust any playfield padding/bounds calculations accordingly).",
       "reqIds": [
         "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-the-game-always-opens-and-stays-in-horizontal-landscape-on-mobile-implement-a-landscape-enforcement-flow-that-a-attempts-to-lock-orientation-to-landscape-when-supported-and-b-when-portrait-is-detected-shows-a-blocking-rotate-to-landscape-overlay-and-prevents-gameplay-input-updates-until-the-device-is-in-landscape",
-      "title": "Ensure the game always opens and stays in horizontal landscape on mobile: implement a landscape enforcement flow that (a) attempts to lock orientation to landscape when supported, and (b) when portrait is detected, shows a blocking “rotate to landscape” overlay and prevents gameplay input/updates until the device is in landscape.",
-      "reqIds": [
-        "REQ-5"
       ],
       "version": 1
     }
@@ -58,30 +46,18 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Fix back-side fire effect/visual not appearing properly",
+      "summary": "Make all UI elements smaller/compact and adjust layout so borders touch edges with no gaps after borders",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Fix obstacle-to-obstacle collision not working properly",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Adjust progress bar width and scale UI smaller for mobile screens",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Force game to always open in horizontal landscape orientation on mobile",
+      "summary": "Enable mobile offline testing by making the game PWA-friendly (manifest/service worker/offline caching) so it can be wrapped into an APK via tools like PWABuilder",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Fix jet thruster rendering, obstacle collisions, mobile UI scaling, and enforce landscape",
+  "projectName": "Compact UI sizing and remove playfield border gaps",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

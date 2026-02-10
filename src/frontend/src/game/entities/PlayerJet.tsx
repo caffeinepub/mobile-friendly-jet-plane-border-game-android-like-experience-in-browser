@@ -14,7 +14,7 @@ export default function PlayerJet({ position, rotation = 0, isThrusting = false 
         transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
       }}
     >
-      <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24" style={{ overflow: 'visible' }}>
+      <div className="relative w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20" style={{ overflow: 'visible' }}>
         {/* Animated thruster glow effect - rendered BEHIND jet, engine-relative */}
         {isThrusting && (
           <div 
@@ -26,7 +26,7 @@ export default function PlayerJet({ position, rotation = 0, isThrusting = false 
           >
             {/* Outer flame layer - orange glow */}
             <div 
-              className="absolute left-1/2 top-1/2 w-8 h-16 sm:w-10 sm:h-20 bg-gradient-to-b from-orange-400 via-orange-500 to-transparent rounded-full blur-lg opacity-60 jet-thruster-outer"
+              className="absolute left-1/2 top-1/2 w-6 h-12 sm:w-8 sm:h-16 bg-gradient-to-b from-orange-400 via-orange-500 to-transparent rounded-full blur-lg opacity-60 jet-thruster-outer"
               style={{
                 transform: 'translate(-50%, 20%) rotate(0deg)',
                 transformOrigin: 'center top',
@@ -35,7 +35,7 @@ export default function PlayerJet({ position, rotation = 0, isThrusting = false 
             
             {/* Middle flame layer - bright orange */}
             <div 
-              className="absolute left-1/2 top-1/2 w-6 h-12 sm:w-8 sm:h-16 bg-gradient-to-b from-orange-300 via-orange-400 to-transparent rounded-full blur-md opacity-75 jet-thruster-middle"
+              className="absolute left-1/2 top-1/2 w-4 h-9 sm:w-6 sm:h-12 bg-gradient-to-b from-orange-300 via-orange-400 to-transparent rounded-full blur-md opacity-75 jet-thruster-middle"
               style={{
                 transform: 'translate(-50%, 22%) rotate(0deg)',
                 transformOrigin: 'center top',
@@ -44,7 +44,7 @@ export default function PlayerJet({ position, rotation = 0, isThrusting = false 
             
             {/* Inner core - bright yellow-white */}
             <div 
-              className="absolute left-1/2 top-1/2 w-4 h-8 sm:w-6 sm:h-12 bg-gradient-to-b from-yellow-200 via-orange-300 to-transparent rounded-full blur-sm opacity-90 jet-thruster-inner"
+              className="absolute left-1/2 top-1/2 w-3 h-6 sm:w-4 sm:h-8 bg-gradient-to-b from-yellow-200 via-orange-300 to-transparent rounded-full blur-sm opacity-90 jet-thruster-inner"
               style={{
                 transform: 'translate(-50%, 24%) rotate(0deg)',
                 transformOrigin: 'center top',
@@ -53,7 +53,7 @@ export default function PlayerJet({ position, rotation = 0, isThrusting = false 
             
             {/* Primary thruster glow base */}
             <div 
-              className="absolute left-1/2 top-1/2 w-12 h-12 sm:w-16 sm:h-16 bg-game-primary rounded-full blur-2xl opacity-70 animate-pulse"
+              className="absolute left-1/2 top-1/2 w-9 h-9 sm:w-12 sm:h-12 bg-game-primary rounded-full blur-2xl opacity-70 animate-pulse"
               style={{
                 transform: 'translate(-50%, 15%)',
               }}

@@ -1,121 +1,92 @@
 {
   "kind": "build_request",
-  "title": "Fix jet thruster rendering, obstacle collisions, mobile UI scaling, and enforce landscape",
-  "priority": "high",
+  "title": "Compact UI sizing and remove playfield border gaps",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the player jet thruster/flame so the rear (back-side) fire always renders correctly for all facing angles (0–360°), including when the jet rotates, without being clipped/hidden, and with the flame originating from the jet’s engine/rear rather than a screen-relative “bottom” position.",
+      "text": "Remove the visible gap around the playfield so the outer border sits flush to the available screen area (no padding/margin creating space outside the border), while keeping mobile safe-area insets respected.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-user-1"
         ],
         "quotes": [
-          "back side of fire not appearing properly."
+          "every thing should be in small size also border is set to corners of all side. it should not contain the gap after borders"
         ]
       },
       "acceptanceCriteria": [
-        "When moving (isThrusting=true), the thruster flame is always visible and attached to the jet’s rear for any rotation angle.",
-        "The thruster is not clipped by the jet container (no cut-off glow/flame) and remains visually behind the jet body.",
-        "When not moving (isThrusting=false), no thruster flame renders (current behavior preserved)."
+        "On mobile and desktop, the playfield border touches the container edges without an extra outer gap caused by padding/margins.",
+        "If safe-area padding is applied (notch/home bar), it is the only remaining spacing and it uses env(safe-area-inset-*) sizing.",
+        "No horizontal/vertical scrollbars are introduced by the playfield layout changes."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Fix obstacle-to-obstacle collision behavior so obstacles consistently collide with each other and separate properly, including edge cases (e.g., overlapping spawns, near-zero distance, and high relative speeds), and ensure collision resolution is applied in the game loop in a stable way (no tunneling/jitter/explosions of velocity).",
+      "text": "Adjust the playfield border/corner styling so borders are cleanly aligned to all four corners with no visual discontinuities or inset gaps at the corners (including the corner accent elements).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-user-1"
         ],
         "quotes": [
-          "and obstacle to obstacle not colliding properly."
+          "border is set to corners of all side. it should not contain the gap after borders"
         ]
       },
       "acceptanceCriteria": [
-        "When two obstacles overlap or touch, they are separated so they no longer overlap after resolution (even if their relative velocity indicates they are moving apart).",
-        "No NaN/Infinity velocities or positions occur when two obstacles share the same position or near-zero distance.",
-        "Obstacle collisions are observable during gameplay (obstacles bounce/deflect rather than pass through each other).",
-        "Collision resolution does not cause persistent jitter (obstacles do not vibrate in place) and does not create unrealistic speed spikes."
+        "All four corner accents visually meet the main border cleanly (no 1–2px gaps or misalignment).",
+        "Rounded corners (if kept) do not cause the border or accents to look separated from the edge.",
+        "The grid overlay and playfield background remain clipped correctly inside the border."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Make the HUD progress bar (and boss bar when shown) compact for mobile landscape: reduce its visual width and overall footprint so it no longer spans the full screen width, while keeping the same progress values and readability.",
+      "text": "Make the in-game UI more compact overall by reducing the on-screen footprint of the HUD (score/level/timer), progress bars, pause button, shoot button, and virtual joystick, while keeping them readable and touchable on mobile.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-user-1"
         ],
         "quotes": [
-          "and progress bar is too much lengthy in width"
+          "every thing should be in small size"
         ]
       },
       "acceptanceCriteria": [
-        "In mobile landscape, the progress/boss bar container is constrained to a reasonable max width and is centered (not full-bleed left-to-right).",
-        "Text and padding for the progress/boss bar are reduced for small screens while staying readable (no overflow/cutoff).",
-        "Progress values and bar fill behavior remain correct."
+        "HUD top bar uses smaller paddings/font sizes and does not overlap critical gameplay area more than before.",
+        "Progress bar containers are shorter and more compact; text remains legible.",
+        "Shoot button and joystick are reduced in size compared to current defaults, with adequate touch target preserved (no missed taps in normal use).",
+        "No UI element is clipped off-screen in common mobile landscape sizes."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Adjust overall in-game UI sizing for mobile devices so all HUD and controls (score panel, timer panel, pause button, progress/boss bar, joystick, shoot button) appear smaller and better fit mobile landscape screens without overlapping the playfield or each other.",
+      "text": "Ensure gameplay bounds and effective playable area match the updated border/gap behavior so there is no extra 'dead space' between the visible border and the area where the player/obstacles can move (i.e., adjust any playfield padding/bounds calculations accordingly).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-user-1"
         ],
         "quotes": [
-          "every thing should look small for mobile device."
+          "it should not contain the gap after borders"
         ]
       },
       "acceptanceCriteria": [
-        "On mobile-sized viewports, HUD panels and controls are visibly smaller than current defaults and do not overlap each other.",
-        "Controls remain fully usable via touch (no broken pointer/touch interactions).",
-        "No critical HUD information (score, level, timer, progress) is cut off on common mobile landscape sizes."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Ensure the game always opens and stays in horizontal landscape on mobile: implement a landscape enforcement flow that (a) attempts to lock orientation to landscape when supported, and (b) when portrait is detected, shows a blocking “rotate to landscape” overlay and prevents gameplay input/updates until the device is in landscape.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "and it should alway open in horizontal landscape."
-        ]
-      },
-      "acceptanceCriteria": [
-        "If the device is in portrait, a full-screen overlay appears instructing the user in English to rotate to landscape, and gameplay is paused/blocked until landscape.",
-        "If the browser supports Screen Orientation API, the app attempts to lock to landscape (best-effort; no crashes if unsupported/denied).",
-        "When rotated to landscape, the overlay disappears and gameplay/UI are usable normally.",
-        "Orientation handling works without modifying any files under frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any sources in frontend/src/components/ui."
+        "Player jet can move visually close to the border consistent with collision radius (no unusually large invisible margin).",
+        "Obstacle/bullet out-of-bounds behavior remains correct after any padding/bounds changes.",
+        "No new collision or clamping bugs are introduced (entities do not clip through the border)."
       ]
     }
   ],
   "constraints": [
-    "Frontend immutable paths must not be edited: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
-    "Backend must remain a single Motoko actor; no new backend services."
+    "Frontend immutable paths must not be modified: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
+    "Backend must remain single-actor in backend/main.mo; no additional backend services."
   ],
   "nonGoals": [
-    "Adding new gameplay mechanics, levels, weapons, or new obstacle types beyond fixing collision behavior.",
-    "Changing authentication or adding third-party integrations."
+    "Generating or providing an Android APK file.",
+    "Adding third-party tooling integrations (e.g., PWABuilder automation) inside the app."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

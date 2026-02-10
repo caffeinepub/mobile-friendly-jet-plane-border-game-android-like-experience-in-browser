@@ -1,127 +1,105 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Jet Rush: thruster rendering, stable obstacle collisions, mobile HUD scaling, and landscape enforcement",
+  "title": "Compact game UI and flush playfield border (safe-area aware)",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Render the jet thruster flame consistently behind the jet and anchored to the engine for any rotation angle without clipping.",
+      "summary": "Remove outer gap around the playfield while preserving mobile safe-area insets and preventing layout overflow.",
       "acceptanceCriteria": [
-        "When moving (isThrusting=true), the thruster flame is always visible and attached to the jet’s rear for any rotation angle.",
-        "The thruster is not clipped by the jet container (no cut-off glow/flame) and remains visually behind the jet body.",
-        "When not moving (isThrusting=false), no thruster flame renders (current behavior preserved)."
+        "On mobile and desktop, the playfield border touches the container edges without an extra outer gap caused by padding/margins.",
+        "If safe-area padding is applied (notch/home bar), it is the only remaining spacing and it uses env(safe-area-inset-*) sizing.",
+        "No horizontal/vertical scrollbars are introduced by the playfield layout changes."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/game/entities/PlayerJet.tsx",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Refactor thruster rendering to be engine-relative (rear-of-jet) rather than container-bottom: compute a rear offset based on the jet rotation, place the flame layer at that offset, and rotate/align the flame with the jet so it looks correct across 0–360°. Ensure the thruster layer is rendered behind the jet body (layering/z-index) and not clipped (overflow-visible on the relevant containers)."
+          "description": "Adjust the root fullscreen container to use dynamic viewport sizing and apply only safe-area inset padding (no extra padding/margins), keeping overflow hidden to avoid scrollbars."
+        },
+        {
+          "path": "frontend/src/game/Playfield.tsx",
+          "operation": "modify",
+          "description": "Remove the outer padding/centering wrapper that creates a visible gap (e.g., p-2/sm:p-3/md:p-4 and flex centering), and make the bordered playfield fill its available area while remaining safe-area compatible via the parent container."
         },
         {
           "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Add/adjust global CSS needed for thruster visibility and layering (e.g., overflow visibility safeguards and/or a dedicated thruster layering utility class) so the glow/flame cannot be cut off when rotated."
+          "description": "Update/add safe-area utility styles so they apply spacing based purely on env(safe-area-inset-*) (no extra minimum padding), enabling the playfield to sit flush except for true safe-area insets."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Make obstacle-to-obstacle collision resolution stable and robust for overlaps, near-zero distance, and high relative speeds.",
+      "summary": "Fix playfield border and corner accent alignment so corners meet cleanly and content remains correctly clipped.",
       "acceptanceCriteria": [
-        "When two obstacles overlap or touch, they are separated so they no longer overlap after resolution (even if their relative velocity indicates they are moving apart).",
-        "No NaN/Infinity velocities or positions occur when two obstacles share the same position or near-zero distance.",
-        "Obstacle collisions are observable during gameplay (obstacles bounce/deflect rather than pass through each other).",
-        "Collision resolution does not cause persistent jitter (obstacles do not vibrate in place) and does not create unrealistic speed spikes."
+        "All four corner accents visually meet the main border cleanly (no 1–2px gaps or misalignment).",
+        "Rounded corners (if kept) do not cause the border or accents to look separated from the edge.",
+        "The grid overlay and playfield background remain clipped correctly inside the border."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/game/physics/obstacleCollisions.ts",
+          "path": "frontend/src/game/Playfield.tsx",
           "operation": "modify",
-          "description": "Harden collision math: handle zero/near-zero distance safely (epsilon + deterministic fallback normal), always apply positional separation when overlapping (regardless of relative motion sign), and apply a stable elastic impulse only when appropriate. Add guards to prevent NaN/Infinity and include mild damping/impulse clamping as needed to avoid velocity explosions at high speeds."
+          "description": "Refactor border + corner accents to share a single source of truth for border thickness and radius (e.g., consistent Tailwind classes / CSS variables), and adjust accent positioning/overlap (box-border and slight inset/overdraw as needed) to eliminate corner discontinuities while keeping overflow-hidden clipping for grid/background."
         },
         {
-          "path": "frontend/src/game/GameScreen.tsx",
+          "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Apply obstacle collision resolution in the game loop in a more stable way: run collision resolution after movement with a small fixed number of passes (or until no overlaps within a pass limit) to reduce tunneling/stack jitter, and ensure overlap separation is not skipped for newly spawned/overlapping obstacles."
+          "description": "Introduce or tune playfield-specific utility classes/variables (e.g., border width/radius helpers) to ensure consistent pixel alignment across DPRs and prevent 1px seams at rounded corners."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Constrain the HUD progress/boss bars to a compact centered layout on mobile landscape without changing progress correctness.",
+      "summary": "Reduce the overall on-screen footprint of in-game HUD, progress bars, pause button, shoot button, and virtual joystick while maintaining readability and touch targets.",
       "acceptanceCriteria": [
-        "In mobile landscape, the progress/boss bar container is constrained to a reasonable max width and is centered (not full-bleed left-to-right).",
-        "Text and padding for the progress/boss bar are reduced for small screens while staying readable (no overflow/cutoff).",
-        "Progress values and bar fill behavior remain correct."
+        "HUD top bar uses smaller paddings/font sizes and does not overlap critical gameplay area more than before.",
+        "Progress bar containers are shorter and more compact; text remains legible.",
+        "Shoot button and joystick are reduced in size compared to current defaults, with adequate touch target preserved (no missed taps in normal use).",
+        "No UI element is clipped off-screen in common mobile landscape sizes."
       ],
       "file_operations": [
         {
           "path": "frontend/src/game/ui/GameOverlay.tsx",
           "operation": "modify",
-          "description": "Update the progress bar and boss bar wrappers to be centered with a max width on small screens (especially mobile landscape), and reduce padding/text sizing for compactness while preserving the existing progress value calculations and the shadcn-ui Progress behavior. Verify the component's usage instructions before implementing."
+          "description": "Tighten HUD and progress UI spacing (reduced paddings/gaps/font sizes), and reposition top/bottom UI using safe-area-aware offsets so the overlay remains compact without clipping in mobile landscape. Continue using shadcn-ui Button and Progress for consistent styling; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/game/ui/ShootButton.tsx",
           "operation": "modify",
-          "description": "Add a small-screen landscape media query to fine-tune progress/boss bar max-width and spacing if Tailwind breakpoints alone do not reliably match mobile landscape sizes."
+          "description": "Reduce the shoot button’s visual size while preserving an adequate touch target (adjust Button sizing classes and icon scale). Continue using shadcn-ui Button; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/game/ui/VirtualJoystick.tsx",
+          "operation": "modify",
+          "description": "Reduce the joystick base/knob sizes and internal padding while keeping control feel stable (update width/height classes and knob constraints) and ensuring it stays fully on-screen in common mobile landscape sizes."
         }
       ]
     },
     {
       "id": "REQ-4",
-      "summary": "Scale down all in-game HUD and touch controls on mobile landscape so they fit without overlapping while remaining usable.",
+      "summary": "Align gameplay bounds calculations with the updated flush-border playfield so there is no dead space between border and playable area.",
       "acceptanceCriteria": [
-        "On mobile-sized viewports, HUD panels and controls are visibly smaller than current defaults and do not overlap each other.",
-        "Controls remain fully usable via touch (no broken pointer/touch interactions).",
-        "No critical HUD information (score, level, timer, progress) is cut off on common mobile landscape sizes."
+        "Player jet can move visually close to the border consistent with collision radius (no unusually large invisible margin).",
+        "Obstacle/bullet out-of-bounds behavior remains correct after any padding/bounds changes.",
+        "No new collision or clamping bugs are introduced (entities do not clip through the border)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/game/ui/GameOverlay.tsx",
+          "path": "frontend/src/game/GameScreen.tsx",
           "operation": "modify",
-          "description": "Reduce base (mobile) sizes for the top HUD panels (score/level, timer) and pause button (dimensions, padding, font sizes), and tighten absolute offsets so the HUD occupies less space in mobile landscape while remaining readable and not colliding with controls. Verify the component's usage instructions before implementing."
+          "description": "Remove or recalibrate any playfield padding assumptions used in playfield sizing (e.g., PLAYFIELD_PADDING subtraction) so the measured playfieldSize matches the visible bordered area after layout changes, eliminating dead space while keeping entity clamping/out-of-bounds behavior consistent."
         },
         {
-          "path": "frontend/src/game/ui/VirtualJoystick.tsx",
+          "path": "frontend/src/game/physics/bounds.ts",
           "operation": "modify",
-          "description": "Reduce base joystick diameter/knob size and adjust internal spacing so it better fits mobile landscape. Preserve pointer/touch handling behavior (pointer capture, touchAction)."
+          "description": "Verify and adjust (if necessary) clamp/reflect/out-of-bounds calculations to ensure entities can approach the visible border appropriately after the playfield sizing update, without introducing clipping or new collision artifacts."
         },
         {
-          "path": "frontend/src/game/ui/ShootButton.tsx",
+          "path": "frontend/src/game/Playfield.tsx",
           "operation": "modify",
-          "description": "Reduce base shoot button size and icon size for mobile landscape while keeping the same pointer event behavior and usability."
-        },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Add optional mobile-landscape layout tweaks (e.g., tighter safe-area offsets and/or utility classes) to ensure HUD and controls don’t overlap on common landscape phone sizes."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Enforce landscape on mobile by attempting orientation lock and blocking gameplay with a rotate overlay when portrait is detected.",
-      "acceptanceCriteria": [
-        "If the device is in portrait, a full-screen overlay appears instructing the user in English to rotate to landscape, and gameplay is paused/blocked until landscape.",
-        "If the browser supports Screen Orientation API, the app attempts to lock to landscape (best-effort; no crashes if unsupported/denied).",
-        "When rotated to landscape, the overlay disappears and gameplay/UI are usable normally.",
-        "Orientation handling works without modifying any files under frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any sources in frontend/src/components/ui."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/game/ui/OrientationGuard.tsx",
-          "operation": "create",
-          "description": "Create a landscape enforcement wrapper that (1) detects orientation via matchMedia/resize/orientationchange, (2) best-effort calls Screen Orientation API lock to landscape when available, and (3) when portrait is detected, shows a blocking full-screen overlay (English instruction) and prevents gameplay by not rendering/activating the game content until landscape."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Wrap GameScreen with the new OrientationGuard so the rotate overlay blocks gameplay updates/inputs in portrait and normal gameplay resumes in landscape, without touching the immutable auth/main/ui component paths."
-        },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Add minimal styling support for the rotate overlay (full-screen, high z-index, readable typography on game background) to ensure it fully blocks interaction and is clearly visible."
+          "description": "Ensure the DOM element used as the measurement/reference area for gameplay sizing corresponds exactly to the inner playable region (inside the border), so visual border placement and gameplay bounds are synchronized."
         }
       ]
     }
