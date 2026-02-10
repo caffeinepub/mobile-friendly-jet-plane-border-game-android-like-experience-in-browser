@@ -22,6 +22,8 @@ interface GameOverlayProps {
   onFireStart: () => void;
   onFireEnd: () => void;
   joystickResetToken: number;
+  sensitivity: number;
+  onSensitivityChange: (value: number) => void;
 }
 
 export default function GameOverlay({
@@ -41,6 +43,8 @@ export default function GameOverlay({
   onFireStart,
   onFireEnd,
   joystickResetToken,
+  sensitivity,
+  onSensitivityChange,
 }: GameOverlayProps) {
   return (
     <>
@@ -80,6 +84,30 @@ export default function GameOverlay({
               </span>
             </div>
             <Progress value={(bossHits / bossMaxHits) * 100} className="h-1.5 sm:h-2" />
+          </div>
+        </div>
+      )}
+
+      {/* Sensitivity control - bottom center */}
+      {(gameState === 'playing' || gameState === 'paused') && (
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 sm:bottom-3">
+          <div className="bg-game-field/80 backdrop-blur-sm border border-game-border rounded px-2 py-1 flex items-center gap-2">
+            <label htmlFor="sensitivity-slider" className="text-[10px] sm:text-xs font-bold text-game-accent whitespace-nowrap">
+              SENSITIVITY
+            </label>
+            <input
+              id="sensitivity-slider"
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={sensitivity}
+              onChange={(e) => onSensitivityChange(parseFloat(e.target.value))}
+              className="w-16 sm:w-20 h-1 bg-game-border rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-game-accent [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-game-accent [&::-moz-range-thumb]:border-0"
+            />
+            <span className="text-[10px] sm:text-xs font-bold text-foreground min-w-[2ch]">
+              {sensitivity.toFixed(1)}
+            </span>
           </div>
         </div>
       )}

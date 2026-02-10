@@ -5,11 +5,13 @@ import Bullet from './entities/Bullet';
 import Obstacle from './entities/Obstacle';
 import Explosion from './effects/Explosion';
 import GameOverlay from './ui/GameOverlay';
-import { clampPosition, reflectAtBounds, isOutOfBounds } from './physics/bounds';
+import { clampPosition, reflectAtBounds, isOutOfBounds, isAtBorder } from './physics/bounds';
 import { angleToForwardVector, pixelVelocityToPercent, offsetPosition } from './physics/vectors';
 import { resolveObstacleCollision } from './physics/obstacleCollisions';
 import { isFullHit } from './physics/playerObstacleHit';
 import { getLevelDuration } from './utils/levelTimer';
+import { processJoystickInput } from './utils/joystickMovement';
+import { useJoystickSensitivity } from './hooks/useJoystickSensitivity';
 
 type GameState = 'idle' | 'playing' | 'exploding' | 'gameover' | 'paused' | 'levelcomplete';
 type ObstacleSize = 'small' | 'medium' | 'large';
@@ -46,7 +48,7 @@ interface ExplosionData {
 const JET_SIZE = 32; // Reduced for mobile - smaller collision radius
 const BULLET_SPEED = 400; // Increased from 300 - bullets travel faster
 const FIRE_COOLDOWN = 200; // Milliseconds between shots - medium cadence
-const MOVEMENT_SPEED = 180; // Pixels per second - FAST speed
+const BASE_MOVEMENT_SPEED = 180; // Base pixels per second - will be scaled by joystick
 const OBSTACLE_SPEED = 120; // Base speed in pixels per second - FAST speed
 const OBSTACLE_SIZE_SMALL = 18; // Small obstacle collision radius
 const OBSTACLE_SIZE_MEDIUM = 24; // Medium obstacle collision radius
@@ -58,7 +60,6 @@ const OBSTACLE_SPAWN_INTERVAL = 1000; // Spawn one obstacle every 1000ms (1 seco
 const MAX_DELTA_TIME = 100; // Clamp delta to avoid huge jumps after tab switches
 const HIT_EFFECT_DURATION = 300; // Duration for bullet hit effects
 const BULLET_SPAWN_OFFSET = 30; // Pixels ahead of jet nose for bullet spawn (tuned for visual muzzle)
-const MOVEMENT_THRESHOLD = 0.01; // Minimal threshold - joystick always controls movement
 const FACING_THRESHOLD = 0.1; // Threshold for updating facing angle
 const BOSS_MAX_HITS = 15; // Boss requires 15 hits to defeat
 const OBSTACLES_PER_LEVEL = 5; // Base number of obstacles per level (multiplied by level)
@@ -87,6 +88,7 @@ export default function GameScreen() {
   const [bossHits, setBossHits] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0); // Countdown timer in seconds
   const [joystickResetToken, setJoystickResetToken] = useState(0); // Token to trigger joystick reset
+  const { sensitivity, setSensitivity } = useJoystickSensitivity();
   const containerRef = useRef<HTMLDivElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const bulletIdRef = useRef(0);
@@ -163,8 +165,8 @@ export default function GameScreen() {
       setFacingAngle(angleDeg);
     }
     
-    // Show thruster when joystick is active
-    setIsThrusting(vector.magnitude > MOVEMENT_THRESHOLD);
+    // Show thruster when joystick is active (will be refined by processJoystickInput)
+    setIsThrusting(vector.magnitude > 0.05);
   }, []);
 
   const handleJoystickNeutral = useCallback(() => {
@@ -381,18 +383,39 @@ export default function GameScreen() {
         }
       }
 
-      // Update player position based on joystick (always respond to joystick input)
-      const joystick = joystickVectorRef.current;
-      if (joystick.magnitude > MOVEMENT_THRESHOLD && playfieldSize.width > 0) {
-        const moveDistance = MOVEMENT_SPEED * deltaSeconds;
-        const dx = (joystick.x * moveDistance) / playfieldSize.width;
-        const dy = (joystick.y * moveDistance) / playfieldSize.height;
+      // Update player position based on joystick with sensitivity curve
+      const rawJoystick = joystickVectorRef.current;
+      const movement = processJoystickInput(rawJoystick);
+      
+      if (movement.speedFactor > 0 && playfieldSize.width > 0) {
+        // Apply curved speed factor and user sensitivity to base movement speed
+        const effectiveSpeed = BASE_MOVEMENT_SPEED * movement.speedFactor * sensitivity;
+        const moveDistance = effectiveSpeed * deltaSeconds;
+        const dx = (movement.direction.x * moveDistance) / playfieldSize.width;
+        const dy = (movement.direction.y * moveDistance) / playfieldSize.height;
 
         setPlayerPos((prev) => {
           const newPos = {
             x: prev.x + dx * 100,
             y: prev.y + dy * 100,
           };
+          
+          // Check if player would reach border before clamping
+          if (isAtBorder(newPos, playfieldSize.width, playfieldSize.height, JET_SIZE)) {
+            // Trigger player death
+            setGameState('exploding');
+            const explosionId = explosionIdRef.current++;
+            setExplosions((prevExplosions) => [
+              ...prevExplosions,
+              { id: explosionId, position: prev, variant: 'player' },
+            ]);
+            explosionTimerRef.current = window.setTimeout(() => {
+              setGameState('gameover');
+            }, EXPLOSION_DURATION);
+            // Return clamped position for final frame
+            return clampPosition(newPos, playfieldSize.width, playfieldSize.height, JET_SIZE);
+          }
+          
           return clampPosition(newPos, playfieldSize.width, playfieldSize.height, JET_SIZE);
         });
       }
@@ -432,95 +455,65 @@ export default function GameScreen() {
           let newVx = obstacle.velocity.x;
 
           if (newZigzagTimer >= obstacle.zigzagInterval) {
-            newVx = (Math.random() - 0.5) * obstacle.zigzagAmplitude * 2;
+            newVx = (Math.random() - 0.5) * obstacle.zigzagAmplitude;
           }
 
-          const direction = {
-            x: newVx === 0 ? 0 : newVx / Math.abs(newVx),
-            y: obstacle.velocity.y === 0 ? 0 : obstacle.velocity.y / Math.abs(obstacle.velocity.y),
+          const newPos = {
+            x: obstacle.position.x + (newVx * deltaSeconds * 100) / playfieldSize.width,
+            y: obstacle.position.y + (obstacle.velocity.y * deltaSeconds * 100) / playfieldSize.height,
           };
-          const magnitude = Math.sqrt(newVx * newVx + obstacle.velocity.y * obstacle.velocity.y);
-          const normalizedDirection = magnitude === 0 ? { x: 0, y: 1 } : {
-            x: newVx / magnitude,
-            y: obstacle.velocity.y / magnitude,
-          };
-
-          const velocityPercent = pixelVelocityToPercent(
-            magnitude,
-            normalizedDirection,
-            playfieldSize.width,
-            playfieldSize.height,
-            deltaSeconds
-          );
 
           return {
             ...obstacle,
-            position: {
-              x: obstacle.position.x + velocityPercent.x,
-              y: obstacle.position.y + velocityPercent.y,
-            },
-            velocity: { x: newVx, y: obstacle.velocity.y },
+            position: newPos,
+            velocity: { ...obstacle.velocity, x: newVx },
             zigzagTimer: newZigzagTimer >= obstacle.zigzagInterval ? 0 : newZigzagTimer,
           };
         });
 
-        // Obstacle-to-obstacle collision resolution
+        // Resolve obstacle-to-obstacle collisions
         for (let i = 0; i < updated.length; i++) {
           for (let j = i + 1; j < updated.length; j++) {
-            const obstacleA = updated[i];
-            const obstacleB = updated[j];
+            const obs1 = updated[i];
+            const obs2 = updated[j];
 
-            const radiusA = obstacleA.isBoss ? BOSS_SIZE : 
-              obstacleA.size === 'small' ? OBSTACLE_SIZE_SMALL :
-              obstacleA.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
-            const radiusB = obstacleB.isBoss ? BOSS_SIZE :
-              obstacleB.size === 'small' ? OBSTACLE_SIZE_SMALL :
-              obstacleB.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
+            const radius1 = obs1.isBoss ? BOSS_SIZE : 
+              obs1.size === 'small' ? OBSTACLE_SIZE_SMALL :
+              obs1.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
+            const radius2 = obs2.isBoss ? BOSS_SIZE :
+              obs2.size === 'small' ? OBSTACLE_SIZE_SMALL :
+              obs2.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
 
             const result = resolveObstacleCollision(
-              obstacleA.position,
-              obstacleA.velocity,
-              radiusA,
-              obstacleB.position,
-              obstacleB.velocity,
-              radiusB,
+              obs1.position,
+              obs1.velocity,
+              radius1,
+              obs2.position,
+              obs2.velocity,
+              radius2,
               playfieldSize.width,
               playfieldSize.height
             );
 
             if (result.collided && result.newPosition1 && result.newVelocity1 && result.newPosition2 && result.newVelocity2) {
-              updated[i] = { ...obstacleA, position: result.newPosition1, velocity: result.newVelocity1 };
-              updated[j] = { ...obstacleB, position: result.newPosition2, velocity: result.newVelocity2 };
+              updated[i] = {
+                ...obs1,
+                position: result.newPosition1,
+                velocity: result.newVelocity1,
+              };
+              updated[j] = {
+                ...obs2,
+                position: result.newPosition2,
+                velocity: result.newVelocity2,
+              };
             }
           }
         }
 
-        // Reflect obstacles at bounds
-        updated = updated.map((obstacle) => {
-          const radius = obstacle.isBoss ? BOSS_SIZE :
-            obstacle.size === 'small' ? OBSTACLE_SIZE_SMALL :
-            obstacle.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
-
-          const reflected = reflectAtBounds(
-            obstacle.position,
-            obstacle.velocity,
-            playfieldSize.width,
-            playfieldSize.height,
-            radius
-          );
-
-          return {
-            ...obstacle,
-            position: reflected.position,
-            velocity: reflected.velocity,
-          };
-        });
-
-        // Remove obstacles that are out of bounds (bottom edge only)
-        return updated.filter((obstacle) => obstacle.position.y < 110);
+        return updated.filter((obstacle) => !isOutOfBounds(obstacle.position, playfieldSize.width, playfieldSize.height, 50));
       });
 
-      // Collision detection: bullets vs obstacles
+      // Check bullet-obstacle collisions
       setBullets((prevBullets) => {
         const remainingBullets = [...prevBullets];
         const bulletsToRemove = new Set<number>();
@@ -530,105 +523,113 @@ export default function GameScreen() {
           const obstaclesToRemove = new Set<number>();
 
           for (const bullet of remainingBullets) {
-            for (const obstacle of remainingObstacles) {
+            for (let i = 0; i < remainingObstacles.length; i++) {
+              const obstacle = remainingObstacles[i];
               const obstacleRadius = obstacle.isBoss ? BOSS_SIZE :
                 obstacle.size === 'small' ? OBSTACLE_SIZE_SMALL :
                 obstacle.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
 
-              const dx = (bullet.position.x - obstacle.position.x) * playfieldSize.width / 100;
-              const dy = (bullet.position.y - obstacle.position.y) * playfieldSize.height / 100;
+              const dx = ((bullet.position.x - obstacle.position.x) * playfieldSize.width) / 100;
+              const dy = ((bullet.position.y - obstacle.position.y) * playfieldSize.height) / 100;
               const distance = Math.sqrt(dx * dx + dy * dy);
 
-              if (distance < BULLET_SIZE + obstacleRadius) {
+              if (distance < obstacleRadius + BULLET_SIZE) {
                 bulletsToRemove.add(bullet.id);
 
-                // Handle boss hits
                 if (obstacle.isBoss) {
+                  // Boss hit
                   setBossHits((prev) => {
                     const newHits = prev + 1;
                     if (newHits >= BOSS_MAX_HITS) {
                       obstaclesToRemove.add(obstacle.id);
-                      setBossActive(false);
-                      bossIdRef.current = null;
                       setScore((s) => s + 100);
                       setGameState('levelcomplete');
                       const explosionId = explosionIdRef.current++;
-                      setExplosions((prev) => [
-                        ...prev,
+                      setExplosions((prevExplosions) => [
+                        ...prevExplosions,
                         { id: explosionId, position: obstacle.position, variant: 'bomb' },
                       ]);
+                      effectTimersRef.current.set(
+                        explosionId,
+                        window.setTimeout(() => {
+                          setExplosions((prev) => prev.filter((e) => e.id !== explosionId));
+                          effectTimersRef.current.delete(explosionId);
+                        }, HIT_EFFECT_DURATION * 3)
+                      );
+                    } else {
+                      const explosionId = explosionIdRef.current++;
+                      setExplosions((prevExplosions) => [
+                        ...prevExplosions,
+                        { id: explosionId, position: bullet.position, variant: 'hit' },
+                      ]);
+                      effectTimersRef.current.set(
+                        explosionId,
+                        window.setTimeout(() => {
+                          setExplosions((prev) => prev.filter((e) => e.id !== explosionId));
+                          effectTimersRef.current.delete(explosionId);
+                        }, HIT_EFFECT_DURATION)
+                      );
                     }
                     return newHits;
                   });
                 } else {
+                  // Regular obstacle hit
                   obstaclesToRemove.add(obstacle.id);
-                  setDestroyedThisLevel((prev) => prev + 1);
                   const scoreValue = obstacle.size === 'small' ? SCORE_SMALL :
                     obstacle.size === 'medium' ? SCORE_MEDIUM : SCORE_LARGE;
-                  setScore((prev) => prev + scoreValue);
+                  setScore((s) => s + scoreValue);
+                  setDestroyedThisLevel((d) => d + 1);
+
+                  const explosionId = explosionIdRef.current++;
+                  setExplosions((prevExplosions) => [
+                    ...prevExplosions,
+                    { id: explosionId, position: obstacle.position, variant: 'hit' },
+                  ]);
+                  effectTimersRef.current.set(
+                    explosionId,
+                    window.setTimeout(() => {
+                      setExplosions((prev) => prev.filter((e) => e.id !== explosionId));
+                      effectTimersRef.current.delete(explosionId);
+                    }, HIT_EFFECT_DURATION)
+                  );
                 }
-
-                // Create hit explosion
-                const explosionId = explosionIdRef.current++;
-                setExplosions((prev) => [
-                  ...prev,
-                  { id: explosionId, position: obstacle.position, variant: 'hit' },
-                ]);
-
-                // Schedule removal of hit effect
-                effectTimersRef.current.set(
-                  explosionId,
-                  window.setTimeout(() => {
-                    setExplosions((prev) => prev.filter((e) => e.id !== explosionId));
-                    effectTimersRef.current.delete(explosionId);
-                  }, HIT_EFFECT_DURATION)
-                );
-
                 break;
               }
             }
           }
 
-          return remainingObstacles.filter((o) => !obstaclesToRemove.has(o.id));
+          return remainingObstacles.filter((obs) => !obstaclesToRemove.has(obs.id));
         });
 
-        return remainingBullets.filter((b) => !bulletsToRemove.has(b.id));
+        return remainingBullets.filter((bullet) => !bulletsToRemove.has(bullet.id));
       });
 
-      // Collision detection: player vs obstacles
+      // Check player-obstacle collisions
       setObstacles((prevObstacles) => {
         for (const obstacle of prevObstacles) {
           const obstacleRadius = obstacle.isBoss ? BOSS_SIZE :
             obstacle.size === 'small' ? OBSTACLE_SIZE_SMALL :
             obstacle.size === 'medium' ? OBSTACLE_SIZE_MEDIUM : OBSTACLE_SIZE_LARGE;
 
-          const dx = (playerPosRef.current.x - obstacle.position.x) * playfieldSize.width / 100;
-          const dy = (playerPosRef.current.y - obstacle.position.y) * playfieldSize.height / 100;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          if (distance < JET_SIZE + obstacleRadius) {
-            // Check if this is a full hit
-            const fullHit = isFullHit(
-              playerPosRef.current,
-              JET_SIZE,
-              obstacle.position,
-              obstacleRadius,
-              playfieldSize.width,
-              playfieldSize.height
-            );
-
-            if (fullHit) {
-              setGameState('exploding');
-              const explosionId = explosionIdRef.current++;
-              setExplosions((prev) => [
-                ...prev,
-                { id: explosionId, position: playerPosRef.current, variant: 'bomb' },
-              ]);
-              explosionTimerRef.current = window.setTimeout(() => {
-                setGameState('gameover');
-              }, EXPLOSION_DURATION);
-              break;
-            }
+          // Check if it's a full hit using the correct function signature
+          if (isFullHit(
+            playerPosRef.current,
+            JET_SIZE,
+            obstacle.position,
+            obstacleRadius,
+            playfieldSize.width,
+            playfieldSize.height
+          )) {
+            setGameState('exploding');
+            const explosionId = explosionIdRef.current++;
+            setExplosions((prevExplosions) => [
+              ...prevExplosions,
+              { id: explosionId, position: playerPosRef.current, variant: 'bomb' },
+            ]);
+            explosionTimerRef.current = window.setTimeout(() => {
+              setGameState('gameover');
+            }, EXPLOSION_DURATION);
+            break;
           }
         }
         return prevObstacles;
@@ -640,26 +641,26 @@ export default function GameScreen() {
     animationFrameRef.current = requestAnimationFrame(gameLoop);
 
     return () => {
-      if (animationFrameRef.current !== null) {
+      if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      if (explosionTimerRef.current !== null) {
+      if (explosionTimerRef.current) {
         clearTimeout(explosionTimerRef.current);
       }
+      effectTimersRef.current.forEach((timer) => clearTimeout(timer));
+      effectTimersRef.current.clear();
     };
-  }, [gameState, playfieldSize, spawnBullet, spawnObstacle, spawnBoss, level, bossActive, destroyedThisLevel]);
+  }, [gameState, playfieldSize, spawnBullet, spawnObstacle, spawnBoss, level, destroyedThisLevel, bossActive, sensitivity]);
 
   return (
-    <div ref={containerRef} className="relative h-full w-full">
+    <div ref={containerRef} className="relative w-full h-full">
       <Playfield>
         {/* Player jet */}
-        {(gameState === 'playing' || gameState === 'paused') && (
-          <PlayerJet
-            position={playerPos}
-            rotation={facingAngle}
-            isThrusting={isThrusting}
-          />
-        )}
+        <PlayerJet
+          position={playerPos}
+          rotation={facingAngle}
+          isThrusting={isThrusting}
+        />
 
         {/* Bullets */}
         {bullets.map((bullet) => (
@@ -690,7 +691,6 @@ export default function GameScreen() {
         ))}
       </Playfield>
 
-      {/* Game overlay */}
       <GameOverlay
         gameState={gameState}
         score={score}
@@ -708,6 +708,8 @@ export default function GameScreen() {
         onFireStart={handleFireStart}
         onFireEnd={handleFireEnd}
         joystickResetToken={joystickResetToken}
+        sensitivity={sensitivity}
+        onSensitivityChange={setSensitivity}
       />
     </div>
   );

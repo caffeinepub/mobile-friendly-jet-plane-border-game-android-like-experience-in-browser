@@ -1,70 +1,41 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T11:24:09.615Z",
+  "generatedAt": "2026-02-10T13:15:27.820Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Remove the visible gap around the playfield so the outer border sits flush to the available screen area (no padding/margin creating space outside the border), while keeping mobile safe-area insets respected.",
+        "summary": "Further reduce the player jet movement sensitivity in response to virtual joystick input by adjusting the joystick-to-movement mapping so that full joystick deflection produces a noticeably slower movement speed and small deflections near center produce finer control.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/game/Playfield.tsx",
-          "frontend/src/index.css"
+          "frontend/src/game/utils/joystickMovement.ts",
+          "frontend/src/game/GameScreen.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/game/Playfield.tsx",
-          "frontend/src/index.css"
+          "frontend/src/game/utils/joystickMovement.ts",
+          "frontend/src/game/GameScreen.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Adjust the playfield border/corner styling so borders are cleanly aligned to all four corners with no visual discontinuities or inset gaps at the corners (including the corner accent elements).",
+        "summary": "Add a user-adjustable joystick sensitivity control in the gameplay UI that lets the player tweak movement sensitivity without code changes, and persist the setting locally so it is retained on refresh.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/game/Playfield.tsx",
-          "frontend/src/index.css"
-        ],
-        "matchedFiles": [
-          "frontend/src/game/Playfield.tsx",
-          "frontend/src/index.css"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Make the in-game UI more compact overall by reducing the on-screen footprint of the HUD (score/level/timer), progress bars, pause button, shoot button, and virtual joystick, while keeping them readable and touchable on mobile.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/game/ui/GameOverlay.tsx",
-          "frontend/src/game/ui/ShootButton.tsx",
-          "frontend/src/game/ui/VirtualJoystick.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/game/ui/GameOverlay.tsx",
-          "frontend/src/game/ui/ShootButton.tsx",
-          "frontend/src/game/ui/VirtualJoystick.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Ensure gameplay bounds and effective playable area match the updated border/gap behavior so there is no extra 'dead space' between the visible border and the area where the player/obstacles can move (i.e., adjust any playfield padding/bounds calculations accordingly).",
-        "status": "implemented",
-        "plannedFiles": [
+          "frontend/src/game/hooks/useJoystickSensitivity.ts",
           "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/physics/bounds.ts",
-          "frontend/src/game/Playfield.tsx"
+          "frontend/src/game/ui/GameOverlay.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/game/hooks/useJoystickSensitivity.ts",
           "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/Playfield.tsx"
+          "frontend/src/game/ui/GameOverlay.tsx"
         ]
       }
     ]
@@ -74,13 +45,10 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
     "frontend/src/game/GameScreen.tsx",
-    "frontend/src/game/Playfield.tsx",
+    "frontend/src/game/hooks/useJoystickSensitivity.ts",
     "frontend/src/game/ui/GameOverlay.tsx",
-    "frontend/src/game/ui/ShootButton.tsx",
-    "frontend/src/game/ui/VirtualJoystick.tsx",
-    "frontend/src/index.css",
+    "frontend/src/game/utils/joystickMovement.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

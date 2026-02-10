@@ -1,44 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Web game project with focus on mobile-friendly play, including offline testing via PWA/APK wrapping, plus UI layout refinements (smaller sizing and border/gap fixes).",
-  "architectural_notes": [
-    "Consider adding PWA support (web app manifest + service worker) to allow offline caching and easier APK wrapping for Android testing."
-  ],
-  "known_issues": [
-    "UI currently has oversized elements and border spacing/gaps that should be removed for a tighter layout."
-  ],
-  "isFixRequest": true,
+  "summary": "New project",
+  "architectural_notes": [],
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-remove-the-visible-gap-around-the-playfield-so-the-outer-border-sits-flush-to-the-available-screen-area-no-padding-margin-creating-space-outside-the-border-while-keeping-mobile-safe-area-insets-respected",
-      "title": "Remove the visible gap around the playfield so the outer border sits flush to the available screen area (no padding/margin creating space outside the border), while keeping mobile safe-area insets respected.",
+      "id": "feature-further-reduce-the-player-jet-movement-sensitivity-in-response-to-virtual-joystick-input-by-adjusting-the-joystick-to-movement-mapping-so-that-full-joystick-deflection-produces-a-noticeably-slower-movement-speed-and-small-deflections-near-center-produce-finer-control",
+      "title": "Further reduce the player jet movement sensitivity in response to virtual joystick input by adjusting the joystick-to-movement mapping so that full joystick deflection produces a noticeably slower movement speed and small deflections near center produce finer control.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-adjust-the-playfield-border-corner-styling-so-borders-are-cleanly-aligned-to-all-four-corners-with-no-visual-discontinuities-or-inset-gaps-at-the-corners-including-the-corner-accent-elements",
-      "title": "Adjust the playfield border/corner styling so borders are cleanly aligned to all four corners with no visual discontinuities or inset gaps at the corners (including the corner accent elements).",
+      "id": "feature-add-a-user-adjustable-joystick-sensitivity-control-in-the-gameplay-ui-that-lets-the-player-tweak-movement-sensitivity-without-code-changes-and-persist-the-setting-locally-so-it-is-retained-on-refresh",
+      "title": "Add a user-adjustable joystick sensitivity control in the gameplay UI that lets the player tweak movement sensitivity without code changes, and persist the setting locally so it is retained on refresh.",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-make-the-in-game-ui-more-compact-overall-by-reducing-the-on-screen-footprint-of-the-hud-score-level-timer-progress-bars-pause-button-shoot-button-and-virtual-joystick-while-keeping-them-readable-and-touchable-on-mobile",
-      "title": "Make the in-game UI more compact overall by reducing the on-screen footprint of the HUD (score/level/timer), progress bars, pause button, shoot button, and virtual joystick, while keeping them readable and touchable on mobile.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-gameplay-bounds-and-effective-playable-area-match-the-updated-border-gap-behavior-so-there-is-no-extra-dead-space-between-the-visible-border-and-the-area-where-the-player-obstacles-can-move-i-e-adjust-any-playfield-padding-bounds-calculations-accordingly",
-      "title": "Ensure gameplay bounds and effective playable area match the updated border/gap behavior so there is no extra 'dead space' between the visible border and the area where the player/obstacles can move (i.e., adjust any playfield padding/bounds calculations accordingly).",
-      "reqIds": [
-        "REQ-4"
       ],
       "version": 1
     }
@@ -46,18 +26,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Make all UI elements smaller/compact and adjust layout so borders touch edges with no gaps after borders",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Enable mobile offline testing by making the game PWA-friendly (manifest/service worker/offline caching) so it can be wrapped into an APK via tools like PWABuilder",
+      "summary": "Allow tweaking joystick sensitivity (adjust sensitivity further)",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Compact UI sizing and remove playfield border gaps",
+  "projectName": "Further reduce virtual joystick movement sensitivity and add an in-game sensitivity control",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

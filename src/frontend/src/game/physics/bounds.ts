@@ -76,3 +76,21 @@ export function isOutOfBounds(
     pos.y > maxPercentY
   );
 }
+
+export function isAtBorder(
+  pos: Position,
+  maxWidth: number,
+  maxHeight: number,
+  entityHalfSize: number
+): boolean {
+  const minPercent = (entityHalfSize / maxWidth) * 100;
+  const maxPercentX = 100 - minPercent;
+  const maxPercentY = 100 - (entityHalfSize / maxHeight) * 100;
+
+  return (
+    pos.x <= minPercent ||
+    pos.x >= maxPercentX ||
+    pos.y <= minPercent ||
+    pos.y >= maxPercentY
+  );
+}

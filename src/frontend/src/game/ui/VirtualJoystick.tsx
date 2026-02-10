@@ -6,6 +6,8 @@ interface VirtualJoystickProps {
   resetToken?: number;
 }
 
+const DEADZONE_PIXELS = 5; // Small deadzone in pixels to prevent micro-movements
+
 export default function VirtualJoystick({ onMove, onNeutral, resetToken }: VirtualJoystickProps) {
   const [knobPosition, setKnobPosition] = useState({ x: 0, y: 0 });
   const baseRef = useRef<HTMLDivElement>(null);
@@ -55,6 +57,14 @@ export default function VirtualJoystick({ onMove, onNeutral, resetToken }: Virtu
     const deltaY = e.clientY - centerY;
 
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+    // Apply deadzone - if within deadzone pixels, report neutral
+    if (distance < DEADZONE_PIXELS) {
+      setKnobPosition({ x: 0, y: 0 });
+      onNeutral();
+      return;
+    }
+
     const clampedDistance = Math.min(distance, maxDistance);
 
     const angle = Math.atan2(deltaY, deltaX);

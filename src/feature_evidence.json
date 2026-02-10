@@ -2,12 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-the-visible-gap-around-the-playfield-so-the-outer-border-sits-flush-to-the-available-screen-area-no-padding-margin-creating-space-outside-the-border-while-keeping-mobile-safe-area-insets-respected",
-      "featureTitle": "Remove the visible gap around the playfield so the outer border sits flush to the available screen area (no padding/margin creating space outside the border), while keeping mobile safe-area insets respected.",
+      "featureId": "feature-further-reduce-the-player-jet-movement-sensitivity-in-response-to-virtual-joystick-input-by-adjusting-the-joystick-to-movement-mapping-so-that-full-joystick-deflection-produces-a-noticeably-slower-movement-speed-and-small-deflections-near-center-produce-finer-control",
+      "featureTitle": "Further reduce the player jet movement sensitivity in response to virtual joystick input by adjusting the joystick-to-movement mapping so that full joystick deflection produces a noticeably slower movement speed and small deflections near center produce finer control.",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/game/Playfield.tsx",
-        "frontend/src/index.css"
+        "frontend/src/game/GameScreen.tsx",
+        "frontend/src/game/utils/joystickMovement.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -22,11 +21,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-adjust-the-playfield-border-corner-styling-so-borders-are-cleanly-aligned-to-all-four-corners-with-no-visual-discontinuities-or-inset-gaps-at-the-corners-including-the-corner-accent-elements",
-      "featureTitle": "Adjust the playfield border/corner styling so borders are cleanly aligned to all four corners with no visual discontinuities or inset gaps at the corners (including the corner accent elements).",
+      "featureId": "feature-add-a-user-adjustable-joystick-sensitivity-control-in-the-gameplay-ui-that-lets-the-player-tweak-movement-sensitivity-without-code-changes-and-persist-the-setting-locally-so-it-is-retained-on-refresh",
+      "featureTitle": "Add a user-adjustable joystick sensitivity control in the gameplay UI that lets the player tweak movement sensitivity without code changes, and persist the setting locally so it is retained on refresh.",
       "files": [
-        "frontend/src/game/Playfield.tsx",
-        "frontend/src/index.css"
+        "frontend/src/game/GameScreen.tsx",
+        "frontend/src/game/hooks/useJoystickSensitivity.ts",
+        "frontend/src/game/ui/GameOverlay.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -37,45 +37,6 @@
       ],
       "testIds": [
         "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-make-the-in-game-ui-more-compact-overall-by-reducing-the-on-screen-footprint-of-the-hud-score-level-timer-progress-bars-pause-button-shoot-button-and-virtual-joystick-while-keeping-them-readable-and-touchable-on-mobile",
-      "featureTitle": "Make the in-game UI more compact overall by reducing the on-screen footprint of the HUD (score/level/timer), progress bars, pause button, shoot button, and virtual joystick, while keeping them readable and touchable on mobile.",
-      "files": [
-        "frontend/src/game/ui/GameOverlay.tsx",
-        "frontend/src/game/ui/ShootButton.tsx",
-        "frontend/src/game/ui/VirtualJoystick.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-gameplay-bounds-and-effective-playable-area-match-the-updated-border-gap-behavior-so-there-is-no-extra-dead-space-between-the-visible-border-and-the-area-where-the-player-obstacles-can-move-i-e-adjust-any-playfield-padding-bounds-calculations-accordingly",
-      "featureTitle": "Ensure gameplay bounds and effective playable area match the updated border/gap behavior so there is no extra 'dead space' between the visible border and the area where the player/obstacles can move (i.e., adjust any playfield padding/bounds calculations accordingly).",
-      "files": [
-        "frontend/src/game/GameScreen.tsx",
-        "frontend/src/game/Playfield.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
       ],
       "confidence": "high"
     }

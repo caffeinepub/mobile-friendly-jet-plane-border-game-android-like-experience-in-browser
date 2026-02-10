@@ -1,105 +1,53 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Compact game UI and flush playfield border (safe-area aware)",
+  "title": "Tune virtual joystick movement curve and add in-game sensitivity setting",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Remove outer gap around the playfield while preserving mobile safe-area insets and preventing layout overflow.",
+      "summary": "Reduce top movement speed and increase fine control near joystick center by tuning the joystick-to-movement curve and scaling.",
       "acceptanceCriteria": [
-        "On mobile and desktop, the playfield border touches the container edges without an extra outer gap caused by padding/margins.",
-        "If safe-area padding is applied (notch/home bar), it is the only remaining spacing and it uses env(safe-area-inset-*) sizing.",
-        "No horizontal/vertical scrollbars are introduced by the playfield layout changes."
+        "Player movement speed at maximum joystick deflection is reduced compared to the current behavior (slower top speed).",
+        "Small joystick movements near center result in more precise/gradual player movement (less jumpy).",
+        "No changes break joystick neutral behavior (releasing the joystick stops movement promptly)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/game/utils/joystickMovement.ts",
           "operation": "modify",
-          "description": "Adjust the root fullscreen container to use dynamic viewport sizing and apply only safe-area inset padding (no extra padding/margins), keeping overflow hidden to avoid scrollbars."
+          "description": "Tune the joystick processing curve to be less sensitive: lower the max speed scaling and adjust the curve exponent/remap so small magnitudes produce finer movement while full deflection produces a noticeably slower top speed. Keep deadzone/neutral output behavior intact (speedFactor 0 at/under deadzone)."
         },
         {
-          "path": "frontend/src/game/Playfield.tsx",
+          "path": "frontend/src/game/GameScreen.tsx",
           "operation": "modify",
-          "description": "Remove the outer padding/centering wrapper that creates a visible gap (e.g., p-2/sm:p-3/md:p-4 and flex centering), and make the bordered playfield fill its available area while remaining safe-area compatible via the parent container."
-        },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Update/add safe-area utility styles so they apply spacing based purely on env(safe-area-inset-*) (no extra minimum padding), enabling the playfield to sit flush except for true safe-area insets."
+          "description": "Update gameplay movement computation to use the newly tuned joystick mapping output for effective movement speed, ensuring releasing the joystick still promptly yields no movement (speedFactor 0) and does not introduce drift."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Fix playfield border and corner accent alignment so corners meet cleanly and content remains correctly clipped.",
+      "summary": "Add a labeled in-game sensitivity control (playing/paused) that updates movement immediately and persists locally across refresh, defaulting to the newly tuned baseline.",
       "acceptanceCriteria": [
-        "All four corner accents visually meet the main border cleanly (no 1–2px gaps or misalignment).",
-        "Rounded corners (if kept) do not cause the border or accents to look separated from the edge.",
-        "The grid overlay and playfield background remain clipped correctly inside the border."
+        "A sensitivity control is available during gameplay (playing/paused states) and is labeled in English.",
+        "Changing the control updates movement sensitivity immediately (no reload required).",
+        "The chosen sensitivity value persists across page reloads using client-side storage (e.g., localStorage).",
+        "The default sensitivity value matches the newly tuned baseline from REQ-1."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/game/Playfield.tsx",
-          "operation": "modify",
-          "description": "Refactor border + corner accents to share a single source of truth for border thickness and radius (e.g., consistent Tailwind classes / CSS variables), and adjust accent positioning/overlap (box-border and slight inset/overdraw as needed) to eliminate corner discontinuities while keeping overflow-hidden clipping for grid/background."
+          "path": "frontend/src/game/hooks/useJoystickSensitivity.ts",
+          "operation": "create",
+          "description": "Create a small React hook to manage joystick sensitivity as a number with: (1) a default value that matches the new tuned baseline from REQ-1, (2) read-once initialization from localStorage, and (3) persistence to localStorage on change."
         },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Introduce or tune playfield-specific utility classes/variables (e.g., border width/radius helpers) to ensure consistent pixel alignment across DPRs and prevent 1px seams at rounded corners."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Reduce the overall on-screen footprint of in-game HUD, progress bars, pause button, shoot button, and virtual joystick while maintaining readability and touch targets.",
-      "acceptanceCriteria": [
-        "HUD top bar uses smaller paddings/font sizes and does not overlap critical gameplay area more than before.",
-        "Progress bar containers are shorter and more compact; text remains legible.",
-        "Shoot button and joystick are reduced in size compared to current defaults, with adequate touch target preserved (no missed taps in normal use).",
-        "No UI element is clipped off-screen in common mobile landscape sizes."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/game/ui/GameOverlay.tsx",
-          "operation": "modify",
-          "description": "Tighten HUD and progress UI spacing (reduced paddings/gaps/font sizes), and reposition top/bottom UI using safe-area-aware offsets so the overlay remains compact without clipping in mobile landscape. Continue using shadcn-ui Button and Progress for consistent styling; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/game/ui/ShootButton.tsx",
-          "operation": "modify",
-          "description": "Reduce the shoot button’s visual size while preserving an adequate touch target (adjust Button sizing classes and icon scale). Continue using shadcn-ui Button; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/game/ui/VirtualJoystick.tsx",
-          "operation": "modify",
-          "description": "Reduce the joystick base/knob sizes and internal padding while keeping control feel stable (update width/height classes and knob constraints) and ensuring it stays fully on-screen in common mobile landscape sizes."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Align gameplay bounds calculations with the updated flush-border playfield so there is no dead space between border and playable area.",
-      "acceptanceCriteria": [
-        "Player jet can move visually close to the border consistent with collision radius (no unusually large invisible margin).",
-        "Obstacle/bullet out-of-bounds behavior remains correct after any padding/bounds changes.",
-        "No new collision or clamping bugs are introduced (entities do not clip through the border)."
-      ],
-      "file_operations": [
         {
           "path": "frontend/src/game/GameScreen.tsx",
           "operation": "modify",
-          "description": "Remove or recalibrate any playfield padding assumptions used in playfield sizing (e.g., PLAYFIELD_PADDING subtraction) so the measured playfieldSize matches the visible bordered area after layout changes, eliminating dead space while keeping entity clamping/out-of-bounds behavior consistent."
+          "description": "Use the new sensitivity hook to obtain the current sensitivity scalar and apply it to joystick-driven movement immediately (no reload). Pass the current sensitivity and an onChange handler down to the gameplay overlay UI."
         },
         {
-          "path": "frontend/src/game/physics/bounds.ts",
+          "path": "frontend/src/game/ui/GameOverlay.tsx",
           "operation": "modify",
-          "description": "Verify and adjust (if necessary) clamp/reflect/out-of-bounds calculations to ensure entities can approach the visible border appropriately after the playfield sizing update, without introducing clipping or new collision artifacts."
-        },
-        {
-          "path": "frontend/src/game/Playfield.tsx",
-          "operation": "modify",
-          "description": "Ensure the DOM element used as the measurement/reference area for gameplay sizing corresponds exactly to the inner playable region (inside the border), so visual border placement and gameplay bounds are synchronized."
+          "description": "Add an in-game sensitivity control to the existing HUD shown during playing/paused states (no new routes/pages). Use existing shadcn-ui composition patterns already present (e.g., the existing Button/Progress usage) without editing any files under frontend/src/components/ui; implement the control as a labeled UI element (e.g., a native range input + text label) that calls back to update sensitivity immediately. Verify the component's usage instructions before implementing."
         }
       ]
     }

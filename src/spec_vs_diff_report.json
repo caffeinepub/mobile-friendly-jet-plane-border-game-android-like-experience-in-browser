@@ -1,62 +1,47 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T11:24:09.612Z",
-  "summary": "Diff implements flush-to-edge layout with safe-area padding, refines playfield border/corner accents, and makes HUD/controls more compact. However, there’s insufficient evidence that gameplay bounds/dead-space calculations were updated to match the new border/gap behavior. Diff also includes multiple unrequested gameplay/tuning and visual/theme changes.",
-  "missing_requirements": [
-    {
-      "id": "REQ-4",
-      "requirement": "Ensure gameplay bounds and effective playable area match the updated border/gap behavior so there is no extra 'dead space' between the visible border and the area where the player/obstacles can move (adjust playfield padding/bounds calculations accordingly).",
-      "reason": "While UI/border layout changes are present, the diff summary does not show any explicit adjustment tying the new visual border thickness/flush layout to the clamping/out-of-bounds/playable-area calculations (e.g., accounting for border thickness or removed padding). The referenced bounds utilities are mentioned generically, but no specific evidence indicates dead-space removal or updated effective bounds matching the new border behavior.",
-      "evidence": [
-        "frontend/src/game/GameScreen.tsx (truncated)",
-        "frontend/src/game/physics/bounds.ts",
-        "frontend/src/game/Playfield.tsx"
-      ]
-    }
-  ],
+  "generatedAt": "2026-02-10T13:15:27.818Z",
+  "summary": "REQ-1 and REQ-2 appear implemented: joystick-to-movement mapping was retuned for slower top speed and finer near-center control, and an in-game sensitivity slider with immediate effect and localStorage persistence was added for playing/paused states. The diff summary also indicates additional gameplay/UI/physics changes beyond joystick sensitivity.",
+  "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Gameplay rebalancing/tuning changes (e.g., increased bullet speed, movement speed, obstacle speeds, spawn interval, boss hit counts, reduced jet/bullet sizes) unrelated to UI compactness/border gap fixes.",
-      "reason": "BuildRequest focuses on layout/border gap removal and UI compactness; it does not request gameplay parameter changes or difficulty tuning.",
+      "description": "Gameplay tuning changes unrelated to joystick sensitivity (e.g., bullet speed/cooldown, obstacle speed/spawn tuning, boss hits, etc.).",
+      "reason": "BuildRequest non-goals specify no new/unrelated gameplay mechanics; the diff summary describes multiple non-sensitivity gameplay parameter changes.",
       "evidence": [
-        "frontend/src/game/GameScreen.tsx (truncated)"
+        "frontend/src/game/GameScreen.tsx (diff snippet shows many gameplay constants like BULLET_SPEED, FIRE_COOLDOWN, OBSTACLE_SPEED, OBSTACLE_SPAWN_INTERVAL, BOSS_MAX_HITS, etc.)",
+        "frontend-file-summaries.txt (describes bullet appearance/speed changes and other gameplay adjustments)"
       ]
     },
     {
-      "description": "Expanded/changed game content and effects (boss mode/health bar behavior, new explosion variants including \"bomb\" massive explosion, redesigned obstacles rendering details).",
-      "reason": "BuildRequest does not request new gameplay features/content; only UI sizing and border/bounds alignment.",
+      "description": "Collision detection/physics changes unrelated to joystick sensitivity.",
+      "reason": "Not requested by REQ-1/REQ-2; the diff summary explicitly mentions corrected collision detection and hardened collision physics.",
       "evidence": [
-        "frontend/src/game/ui/GameOverlay.tsx (truncated)",
-        "frontend-file-summaries.txt (Obstacle.tsx, Explosion.tsx entries)"
+        "frontend-file-summaries.txt (\"GameScreen... corrected collision detection...\" and \"obstacleCollisions... Hardened...\")"
       ]
     },
     {
-      "description": "Global theme/color system overhaul (OKLCH arcade theme tokens, extensive animation keyframes) beyond the requested compact UI and border gap removal.",
-      "reason": "Not requested; could be considered scope expansion beyond layout tweaks.",
+      "description": "UI/layout/theming changes unrelated to joystick sensitivity (safe-area handling changes, tailwind color token extensions, playfield border/padding changes, global CSS animation/theming updates).",
+      "reason": "Not requested; BuildRequest scope is joystick sensitivity + in-game control only.",
       "evidence": [
-        "frontend/src/index.css (truncated)",
-        "frontend/tailwind.config.js"
+        "frontend-file-summaries.txt (mentions App.tsx safe-area inset handling, Playfield layout changes, index.css global style changes, tailwind.config.js theme token changes)"
       ]
     },
     {
-      "description": "Added a placeholder React Query hooks file (useQueries.ts) despite no requirement for React Query integration.",
-      "reason": "No BuildRequest requirement mentions React Query or adding placeholder hook modules.",
+      "description": "Player jet and projectile visual size changes unrelated to joystick sensitivity.",
+      "reason": "Not requested; BuildRequest is about movement sensitivity mapping and a sensitivity UI control.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/hooks/useQueries.ts entry)"
+        "frontend-file-summaries.txt (mentions PlayerJet size reductions and Bullet visual size changes)"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.66,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
     "frontend/src/game/GameScreen.tsx",
-    "frontend/src/game/Playfield.tsx",
+    "frontend/src/game/hooks/useJoystickSensitivity.ts",
     "frontend/src/game/ui/GameOverlay.tsx",
-    "frontend/src/game/ui/ShootButton.tsx",
-    "frontend/src/game/ui/VirtualJoystick.tsx",
-    "frontend/src/index.css",
+    "frontend/src/game/utils/joystickMovement.ts",
     "project_state.json"
   ]
 }

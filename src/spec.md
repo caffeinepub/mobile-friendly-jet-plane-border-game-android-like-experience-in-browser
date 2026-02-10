@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Remove outer gaps around the playfield border and make the in-game UI more compact while keeping safe-area insets and gameplay bounds correct.
+**Goal:** Make the virtual joystick control less sensitive and provide an in-game sensitivity setting that persists locally.
 
 **Planned changes:**
-- Update playfield container/layout styles to eliminate any padding/margins that create visible space outside the outer border, while still applying mobile safe-area insets via `env(safe-area-inset-*)`.
-- Refine border and corner-accent styling so all four corners align cleanly with the main border (no 1–2px seams/gaps) and the playfield background/grid remain correctly clipped inside.
-- Reduce overall HUD footprint (score/level/timer), progress bars, pause button, shoot button, and virtual joystick sizing/padding to be more compact while staying readable and touch-friendly on mobile.
-- Adjust playfield bounds/padding calculations so the playable area matches the updated border (no extra “dead space” between the visible border and movement/collision limits), without introducing scrolling or new collision/clamping issues.
+- Adjust the joystick-to-movement mapping to reduce top speed at full deflection and make near-center input more gradual/precise, while preserving prompt stop on neutral.
+- Add an in-game, English-labeled joystick sensitivity control available during gameplay (playing/paused) that updates movement immediately.
+- Persist the selected sensitivity value in client-side storage (e.g., localStorage) and default it to the newly tuned baseline.
 
-**User-visible outcome:** The playfield border sits flush to the screen/container edges (except for safe-area insets), corners look continuous, and the HUD/controls take up less space without breaking touch usability or gameplay bounds.
+**User-visible outcome:** During gameplay, the jet moves more smoothly and less aggressively with the virtual joystick, and players can adjust and save joystick sensitivity without reloading.
