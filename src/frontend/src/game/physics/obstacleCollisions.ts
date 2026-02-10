@@ -21,6 +21,10 @@ interface CollisionResult {
   newPosition2?: Position;
 }
 
+const EPSILON = 0.001; // Small value to prevent division by zero
+const DAMPING = 0.95; // Slight damping to prevent velocity explosions
+const MAX_IMPULSE = 500; // Maximum impulse to prevent unrealistic speeds
+
 /**
  * Resolve collision between two circular obstacles.
  * @param pos1 - Position of first obstacle (percent)
@@ -52,7 +56,8 @@ export function resolveObstacleCollision(
   // Calculate distance between centers
   const dx = x2 - x1;
   const dy = y2 - y1;
-  const distance = Math.sqrt(dx * dx + dy * dy);
+  const distanceSquared = dx * dx + dy * dy;
+  const distance = Math.sqrt(distanceSquared);
 
   // Check if collision occurred
   const minDistance = radius1 + radius2;
@@ -60,9 +65,27 @@ export function resolveObstacleCollision(
     return { collided: false };
   }
 
-  // Collision detected - calculate collision normal (unit vector from 1 to 2)
-  const nx = dx / distance;
-  const ny = dy / distance;
+  // Handle near-zero or zero distance (obstacles on top of each other)
+  let nx: number, ny: number;
+  if (distance < EPSILON) {
+    // Use a deterministic fallback normal (prefer horizontal separation)
+    nx = 1;
+    ny = 0;
+  } else {
+    // Calculate collision normal (unit vector from 1 to 2)
+    nx = dx / distance;
+    ny = dy / distance;
+  }
+
+  // Always separate overlapping obstacles regardless of relative velocity
+  const overlap = minDistance - distance;
+  const separationX = (overlap / 2 + EPSILON) * nx;
+  const separationY = (overlap / 2 + EPSILON) * ny;
+
+  const newX1 = x1 - separationX;
+  const newY1 = y1 - separationY;
+  const newX2 = x2 + separationX;
+  const newY2 = y2 + separationY;
 
   // Calculate relative velocity
   const dvx = vel2.x - vel1.x;
@@ -71,34 +94,41 @@ export function resolveObstacleCollision(
   // Calculate relative velocity along collision normal
   const dvn = dvx * nx + dvy * ny;
 
-  // Objects moving apart - no need to resolve
-  if (dvn >= 0) {
-    return { collided: false };
+  // Apply elastic collision impulse only if objects are moving toward each other
+  let newVel1: Velocity;
+  let newVel2: Velocity;
+
+  if (dvn < 0) {
+    // Objects moving toward each other - apply elastic impulse with damping
+    let impulse = dvn * DAMPING;
+    
+    // Clamp impulse to prevent velocity explosions
+    if (Math.abs(impulse) > MAX_IMPULSE) {
+      impulse = Math.sign(impulse) * MAX_IMPULSE;
+    }
+
+    newVel1 = {
+      x: vel1.x + impulse * nx,
+      y: vel1.y + impulse * ny,
+    };
+
+    newVel2 = {
+      x: vel2.x - impulse * nx,
+      y: vel2.y - impulse * ny,
+    };
+  } else {
+    // Objects moving apart or parallel - just separate, keep velocities
+    newVel1 = { ...vel1 };
+    newVel2 = { ...vel2 };
   }
 
-  // Simple elastic collision response (equal mass assumption)
-  // Reflect velocities along the collision normal
-  const impulse = dvn;
-
-  const newVel1: Velocity = {
-    x: vel1.x + impulse * nx,
-    y: vel1.y + impulse * ny,
-  };
-
-  const newVel2: Velocity = {
-    x: vel2.x - impulse * nx,
-    y: vel2.y - impulse * ny,
-  };
-
-  // Separate overlapping obstacles to prevent jitter
-  const overlap = minDistance - distance;
-  const separationX = (overlap / 2) * nx;
-  const separationY = (overlap / 2) * ny;
-
-  const newX1 = x1 - separationX;
-  const newY1 = y1 - separationY;
-  const newX2 = x2 + separationX;
-  const newY2 = y2 + separationY;
+  // Guard against NaN/Infinity
+  if (!isFinite(newVel1.x) || !isFinite(newVel1.y)) {
+    newVel1 = { x: 0, y: vel1.y };
+  }
+  if (!isFinite(newVel2.x) || !isFinite(newVel2.y)) {
+    newVel2 = { x: 0, y: vel2.y };
+  }
 
   // Convert back to percent
   const newPos1: Position = {

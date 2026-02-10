@@ -1,31 +1,89 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T08:21:06.262Z",
-  "summary": "Diff updates the PlayerJet rendering to use a jet sprite with thruster effects gated by isThrusting, and adjusts gameplay constants in GameScreen (including reducing BULLET_SPAWN_OFFSET and introducing OBSTACLES_PER_LEVEL = 5). GameOverlay adds pointer-capture based continuous firing behavior. Core REQ goals appear addressed at a high level, but some acceptance-criteria details (e.g., bullet spawn alignment and per-level obstacle target usage in logic/UI) are not fully verifiable from the truncated diff.",
-  "missing_requirements": [],
+  "generatedAt": "2026-02-10T09:14:22.800Z",
+  "summary": "Diff implements an OrientationGuard overlay with best-effort Screen Orientation API locking, updates PlayerJet thruster rendering to be engine-relative with overflow visible, adds a hardened obstacle collision resolver, and applies multiple mobile UI sizing/spacing changes in the HUD and controls. However, the orientation enforcement appears to block input visually but does not clearly pause/stop gameplay updates while in portrait. Several additional gameplay/rendering refactors (bullets, obstacles, explosions, theming, timers) are described in the diff summaries but were not requested.",
+  "missing_requirements": [
+    {
+      "id": "REQ-5",
+      "requirement": "When portrait is detected, gameplay is paused/blocked until the device is in landscape (not just an overlay).",
+      "reason": "OrientationGuard renders a full-screen overlay when portrait, but the diff summary does not show any mechanism that actually pauses/stops the game loop or game state updates; it only conditionally renders UI over children.",
+      "evidence": [
+        "frontend/src/game/ui/OrientationGuard.tsx",
+        "frontend/src/App.tsx"
+      ]
+    }
+  ],
   "hallucinated_features": [
     {
-      "description": "Continuous firing via pointer capture / firing-on-pointerdown behavior in the overlay (including mobile right-side-only firing logic).",
-      "reason": "BuildRequest focuses on bullet spawn position, obstacle scaling per level, and jet visuals; it does not request changes to firing input mechanics.",
+      "description": "Bullet spawning/travel behavior changes (bullets spawning from jet nose with fixed velocity vectors at fire time for straight-line travel) and related physics/collision signature changes.",
+      "reason": "Not requested (non-goal: no new gameplay mechanics); described as implemented in file summaries but not part of REQ-1..REQ-5.",
       "evidence": [
-        "frontend/src/game/ui/GameOverlay.tsx"
+        "frontend-file-summaries.txt (GameScreen.tsx summary)"
       ]
     },
     {
-      "description": "Broad gameplay tuning and additional mechanics/constants (e.g., large speed increases, boss-related constants like BOSS_MAX_HITS, boss size, countdown timer state fields) beyond the requested bullet-spawn-position and obstacle-count scaling.",
-      "reason": "BuildRequest does not ask for changing movement/bullet/obstacle speeds, adding boss-related balancing, or adding a level countdown timer.",
+      "description": "Playfield container layout changes (responsive border thickness/padding adjustments) beyond specified HUD/controls resizing.",
+      "reason": "REQ-4 focuses on HUD and controls sizing/overlap; playfield border/padding redesign is not explicitly requested.",
       "evidence": [
-        "frontend/src/game/GameScreen.tsx"
+        "frontend-file-summaries.txt (Playfield.tsx summary)"
+      ]
+    },
+    {
+      "description": "Obstacle visual redesign and new props (size: small/medium/large, optional isBoss) with hexagon SVG rendering details.",
+      "reason": "Not requested; may be interpreted as new obstacle presentation/behavior changes beyond fixing collision behavior.",
+      "evidence": [
+        "frontend-file-summaries.txt (Obstacle.tsx summary)"
+      ]
+    },
+    {
+      "description": "Explosion effect expanded to multiple variants (\"hit\", \"player\", \"bomb\") with heavier effects for obstacle→player collisions.",
+      "reason": "Not requested; adds new visual/gameplay feedback variants beyond the specified fixes.",
+      "evidence": [
+        "frontend-file-summaries.txt (Explosion.tsx summary)"
+      ]
+    },
+    {
+      "description": "Addition of shared vector math helpers and changes to angle conventions for bullet rotation alignment.",
+      "reason": "Not requested by any REQ; described as new/changed system behavior in summaries.",
+      "evidence": [
+        "frontend-file-summaries.txt (vectors.ts and Bullet.tsx summaries)"
+      ]
+    },
+    {
+      "description": "Addition of a per-level countdown timer utility and associated time formatting logic.",
+      "reason": "Not requested (REQs do not include adding/changing timers); described as added utility.",
+      "evidence": [
+        "frontend-file-summaries.txt (levelTimer.ts summary)"
+      ]
+    },
+    {
+      "description": "Global theming overhaul (OKLCH color system) and Tailwind config extension with game-specific tokens.",
+      "reason": "Not requested; UI scaling was requested but a full theme/color-system overhaul is additional scope.",
+      "evidence": [
+        "frontend/src/index.css",
+        "frontend-file-summaries.txt (tailwind.config.js summary)"
+      ]
+    },
+    {
+      "description": "Addition of a placeholder React Query hook file (useQueries.ts).",
+      "reason": "Not requested and unrelated to REQ-1..REQ-5.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/hooks/useQueries.ts summary)"
       ]
     }
   ],
   "confidence": 0.62,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/game/GameScreen.tsx",
+    "frontend/src/App.tsx",
     "frontend/src/game/entities/PlayerJet.tsx",
+    "frontend/src/game/physics/obstacleCollisions.ts",
     "frontend/src/game/ui/GameOverlay.tsx",
+    "frontend/src/game/ui/OrientationGuard.tsx",
+    "frontend/src/game/ui/ShootButton.tsx",
+    "frontend/src/game/ui/VirtualJoystick.tsx",
+    "frontend/src/index.css",
     "project_state.json"
   ]
 }

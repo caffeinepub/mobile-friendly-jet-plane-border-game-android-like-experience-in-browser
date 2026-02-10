@@ -1,50 +1,83 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T08:21:06.265Z",
+  "generatedAt": "2026-02-10T09:14:22.803Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 5,
+    "implemented": 5,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Update bullet spawning so bullets originate from the player jet (or very close to the jet nose) rather than spawning far ahead of the player.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/physics/vectors.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/game/GameScreen.tsx"
-        ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Scale the number of obstacles per level in increments of 5: Level 1 spawns/contains 5 obstacles, Level 2 has 10 obstacles, Level 3 has 15 obstacles, and so on (5 * level).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/ui/GameOverlay.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/ui/GameOverlay.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Update the player jet visual design so it clearly reads as a jet plane (sleek fuselage, wings, and pointed nose) and does not look like a “bud.”",
+        "summary": "Fix the player jet thruster/flame so the rear (back-side) fire always renders correctly for all facing angles (0–360°), including when the jet rotates, without being clipped/hidden, and with the flame originating from the jet’s engine/rear rather than a screen-relative “bottom” position.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/game/entities/PlayerJet.tsx",
           "frontend/src/index.css"
         ],
         "matchedFiles": [
-          "frontend/src/game/entities/PlayerJet.tsx"
+          "frontend/src/game/entities/PlayerJet.tsx",
+          "frontend/src/index.css"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Fix obstacle-to-obstacle collision behavior so obstacles consistently collide with each other and separate properly, including edge cases (e.g., overlapping spawns, near-zero distance, and high relative speeds), and ensure collision resolution is applied in the game loop in a stable way (no tunneling/jitter/explosions of velocity).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/game/physics/obstacleCollisions.ts",
+          "frontend/src/game/GameScreen.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/game/physics/obstacleCollisions.ts"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Make the HUD progress bar (and boss bar when shown) compact for mobile landscape: reduce its visual width and overall footprint so it no longer spans the full screen width, while keeping the same progress values and readability.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/game/ui/GameOverlay.tsx",
+          "frontend/src/index.css"
+        ],
+        "matchedFiles": [
+          "frontend/src/game/ui/GameOverlay.tsx",
+          "frontend/src/index.css"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Adjust overall in-game UI sizing for mobile devices so all HUD and controls (score panel, timer panel, pause button, progress/boss bar, joystick, shoot button) appear smaller and better fit mobile landscape screens without overlapping the playfield or each other.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/game/ui/GameOverlay.tsx",
+          "frontend/src/game/ui/VirtualJoystick.tsx",
+          "frontend/src/game/ui/ShootButton.tsx",
+          "frontend/src/index.css"
+        ],
+        "matchedFiles": [
+          "frontend/src/game/ui/GameOverlay.tsx",
+          "frontend/src/game/ui/VirtualJoystick.tsx",
+          "frontend/src/game/ui/ShootButton.tsx",
+          "frontend/src/index.css"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Ensure the game always opens and stays in horizontal landscape on mobile: implement a landscape enforcement flow that (a) attempts to lock orientation to landscape when supported, and (b) when portrait is detected, shows a blocking “rotate to landscape” overlay and prevents gameplay input/updates until the device is in landscape.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/game/ui/OrientationGuard.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/index.css"
+        ],
+        "matchedFiles": [
+          "frontend/src/game/ui/OrientationGuard.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/index.css"
         ]
       }
     ]
@@ -54,9 +87,14 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/game/GameScreen.tsx",
+    "frontend/src/App.tsx",
     "frontend/src/game/entities/PlayerJet.tsx",
+    "frontend/src/game/physics/obstacleCollisions.ts",
     "frontend/src/game/ui/GameOverlay.tsx",
+    "frontend/src/game/ui/OrientationGuard.tsx",
+    "frontend/src/game/ui/ShootButton.tsx",
+    "frontend/src/game/ui/VirtualJoystick.tsx",
+    "frontend/src/index.css",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

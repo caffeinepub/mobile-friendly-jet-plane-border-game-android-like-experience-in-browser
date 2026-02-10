@@ -1,69 +1,127 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Jet Rush: bullet spawn alignment, per-level obstacle scaling, and improved jet visuals",
+  "title": "Jet Rush: thruster rendering, stable obstacle collisions, mobile HUD scaling, and landscape enforcement",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Spawn bullets at/near the player jet nose and aligned to the current facing angle.",
+      "summary": "Render the jet thruster flame consistently behind the jet and anchored to the engine for any rotation angle without clipping.",
       "acceptanceCriteria": [
-        "When firing, new bullets appear visually at (or very near) the player jet position, aligned to the jet’s facing angle.",
-        "Bullet spawn does not appear noticeably detached from the jet (e.g., no large gap in front of the jet at the moment of spawn).",
-        "Bullet direction and rotation remain consistent with the player’s facing angle at the moment of firing."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/game/GameScreen.tsx",
-          "operation": "modify",
-          "description": "Adjust bullet spawn logic to originate from the jet (or very near the nose) by reducing/removing the large forward spawn offset and (if needed) deriving a small nose offset from the current jet rendering size/scale; ensure the bullet's initial rotation and velocity still use the facing-angle snapshot at fire time."
-        },
-        {
-          "path": "frontend/src/game/physics/vectors.ts",
-          "operation": "modify",
-          "description": "If needed to support tighter bullet spawn placement across screen sizes, extend the position-offset helper(s) to allow a small, configurable forward offset and/or a secondary lateral offset while preserving the same angle-to-forward-vector convention used by the jet and bullet."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Scale obstacles per level to a target of 5 * level and reflect this in gameplay and UI progress.",
-      "acceptanceCriteria": [
-        "At the start of Level 1, there are 5 obstacles active in the playfield (excluding any boss entity, if bosses are separate).",
-        "At the start of Level 2, there are 10 obstacles active in the playfield (excluding any boss entity, if bosses are separate).",
-        "For any level N, the obstacle count target is 5*N and the game logic uses this target consistently (spawning and/or maintaining obstacles so the level difficulty scales accordingly).",
-        "The level progress UI (e.g., destroyed/target) reflects the updated per-level target (5*level)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/game/GameScreen.tsx",
-          "operation": "modify",
-          "description": "Introduce a per-level obstacle target computed as (5 * level), spawn that many obstacles at the start of each level (when not in boss mode), and ensure any time-based obstacle spawning/maintenance respects the target (e.g., only spawn when current obstacle count is below target). Update level completion/destroyed tracking to use the same computed target."
-        },
-        {
-          "path": "frontend/src/game/ui/GameOverlay.tsx",
-          "operation": "modify",
-          "description": "Ensure the overlay progress display and level-complete screen use the provided per-level target (5 * level) consistently (e.g., destroyed/target and progress bar), without relying on a hard-coded default that could diverge from gameplay."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Improve the player jet visuals to read clearly as a sleek jet plane while preserving rotation and thrust behavior.",
-      "acceptanceCriteria": [
-        "The player entity renders with a clearly jet-like silhouette (distinct wings and a pointed nose).",
-        "The updated jet art remains correctly centered on the player position and rotates smoothly with the same facing-angle behavior as before.",
-        "No visual regressions: thrust visuals still appear only when the player is moving (thrusting), and the player remains visible on common screen sizes (mobile + desktop)."
+        "When moving (isThrusting=true), the thruster flame is always visible and attached to the jet’s rear for any rotation angle.",
+        "The thruster is not clipped by the jet container (no cut-off glow/flame) and remains visually behind the jet body.",
+        "When not moving (isThrusting=false), no thruster flame renders (current behavior preserved)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/game/entities/PlayerJet.tsx",
           "operation": "modify",
-          "description": "Update the PlayerJet rendering to use the existing generated jet sprite at frontend/public/assets/generated/jet-player.dim_256x256.png (as the primary silhouette) and layer existing thrust/glow effects appropriately; keep the same centering (translate -50%/-50%) and rotation behavior. Verify the component's usage instructions before implementing."
+          "description": "Refactor thruster rendering to be engine-relative (rear-of-jet) rather than container-bottom: compute a rear offset based on the jet rotation, place the flame layer at that offset, and rotate/align the flame with the jet so it looks correct across 0–360°. Ensure the thruster layer is rendered behind the jet body (layering/z-index) and not clipped (overflow-visible on the relevant containers)."
         },
         {
           "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "If needed after switching to the sprite-based jet, tune existing jet-related utility animations/classes to ensure thrust visuals remain visible only while thrusting and do not obscure the new jet silhouette on mobile and desktop."
+          "description": "Add/adjust global CSS needed for thruster visibility and layering (e.g., overflow visibility safeguards and/or a dedicated thruster layering utility class) so the glow/flame cannot be cut off when rotated."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Make obstacle-to-obstacle collision resolution stable and robust for overlaps, near-zero distance, and high relative speeds.",
+      "acceptanceCriteria": [
+        "When two obstacles overlap or touch, they are separated so they no longer overlap after resolution (even if their relative velocity indicates they are moving apart).",
+        "No NaN/Infinity velocities or positions occur when two obstacles share the same position or near-zero distance.",
+        "Obstacle collisions are observable during gameplay (obstacles bounce/deflect rather than pass through each other).",
+        "Collision resolution does not cause persistent jitter (obstacles do not vibrate in place) and does not create unrealistic speed spikes."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/game/physics/obstacleCollisions.ts",
+          "operation": "modify",
+          "description": "Harden collision math: handle zero/near-zero distance safely (epsilon + deterministic fallback normal), always apply positional separation when overlapping (regardless of relative motion sign), and apply a stable elastic impulse only when appropriate. Add guards to prevent NaN/Infinity and include mild damping/impulse clamping as needed to avoid velocity explosions at high speeds."
+        },
+        {
+          "path": "frontend/src/game/GameScreen.tsx",
+          "operation": "modify",
+          "description": "Apply obstacle collision resolution in the game loop in a more stable way: run collision resolution after movement with a small fixed number of passes (or until no overlaps within a pass limit) to reduce tunneling/stack jitter, and ensure overlap separation is not skipped for newly spawned/overlapping obstacles."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Constrain the HUD progress/boss bars to a compact centered layout on mobile landscape without changing progress correctness.",
+      "acceptanceCriteria": [
+        "In mobile landscape, the progress/boss bar container is constrained to a reasonable max width and is centered (not full-bleed left-to-right).",
+        "Text and padding for the progress/boss bar are reduced for small screens while staying readable (no overflow/cutoff).",
+        "Progress values and bar fill behavior remain correct."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/game/ui/GameOverlay.tsx",
+          "operation": "modify",
+          "description": "Update the progress bar and boss bar wrappers to be centered with a max width on small screens (especially mobile landscape), and reduce padding/text sizing for compactness while preserving the existing progress value calculations and the shadcn-ui Progress behavior. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add a small-screen landscape media query to fine-tune progress/boss bar max-width and spacing if Tailwind breakpoints alone do not reliably match mobile landscape sizes."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Scale down all in-game HUD and touch controls on mobile landscape so they fit without overlapping while remaining usable.",
+      "acceptanceCriteria": [
+        "On mobile-sized viewports, HUD panels and controls are visibly smaller than current defaults and do not overlap each other.",
+        "Controls remain fully usable via touch (no broken pointer/touch interactions).",
+        "No critical HUD information (score, level, timer, progress) is cut off on common mobile landscape sizes."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/game/ui/GameOverlay.tsx",
+          "operation": "modify",
+          "description": "Reduce base (mobile) sizes for the top HUD panels (score/level, timer) and pause button (dimensions, padding, font sizes), and tighten absolute offsets so the HUD occupies less space in mobile landscape while remaining readable and not colliding with controls. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/game/ui/VirtualJoystick.tsx",
+          "operation": "modify",
+          "description": "Reduce base joystick diameter/knob size and adjust internal spacing so it better fits mobile landscape. Preserve pointer/touch handling behavior (pointer capture, touchAction)."
+        },
+        {
+          "path": "frontend/src/game/ui/ShootButton.tsx",
+          "operation": "modify",
+          "description": "Reduce base shoot button size and icon size for mobile landscape while keeping the same pointer event behavior and usability."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add optional mobile-landscape layout tweaks (e.g., tighter safe-area offsets and/or utility classes) to ensure HUD and controls don’t overlap on common landscape phone sizes."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Enforce landscape on mobile by attempting orientation lock and blocking gameplay with a rotate overlay when portrait is detected.",
+      "acceptanceCriteria": [
+        "If the device is in portrait, a full-screen overlay appears instructing the user in English to rotate to landscape, and gameplay is paused/blocked until landscape.",
+        "If the browser supports Screen Orientation API, the app attempts to lock to landscape (best-effort; no crashes if unsupported/denied).",
+        "When rotated to landscape, the overlay disappears and gameplay/UI are usable normally.",
+        "Orientation handling works without modifying any files under frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any sources in frontend/src/components/ui."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/game/ui/OrientationGuard.tsx",
+          "operation": "create",
+          "description": "Create a landscape enforcement wrapper that (1) detects orientation via matchMedia/resize/orientationchange, (2) best-effort calls Screen Orientation API lock to landscape when available, and (3) when portrait is detected, shows a blocking full-screen overlay (English instruction) and prevents gameplay by not rendering/activating the game content until landscape."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wrap GameScreen with the new OrientationGuard so the rotate overlay blocks gameplay updates/inputs in portrait and normal gameplay resumes in landscape, without touching the immutable auth/main/ui component paths."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add minimal styling support for the rotate overlay (full-screen, high z-index, readable typography on game background) to ensure it fully blocks interaction and is clearly visible."
         }
       ]
     }

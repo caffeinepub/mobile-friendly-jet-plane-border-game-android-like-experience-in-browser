@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import VirtualJoystick from './VirtualJoystick';
+import ShootButton from './ShootButton';
 import { Button } from '@/components/ui/button';
 import { Play, Pause } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
@@ -44,67 +45,9 @@ export default function GameOverlay({
   onFireStart,
   onFireEnd,
 }: GameOverlayProps) {
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const isFiringRef = useRef(false);
-
-  // Handle pointer capture for continuous firing
-  useEffect(() => {
-    const overlay = overlayRef.current;
-    if (!overlay) return;
-
-    const handlePointerDown = (e: PointerEvent) => {
-      if (gameState !== 'playing') return;
-      
-      // Check if click is on fire button area (right side of screen on mobile, or anywhere on desktop)
-      const rect = overlay.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const isRightSide = x > rect.width / 2;
-      
-      // On mobile (touch), only fire on right side; on desktop (mouse), fire anywhere
-      if (e.pointerType === 'touch' && !isRightSide) return;
-      
-      if (!isFiringRef.current) {
-        isFiringRef.current = true;
-        onFireStart();
-        overlay.setPointerCapture(e.pointerId);
-      }
-    };
-
-    const handlePointerUp = (e: PointerEvent) => {
-      if (isFiringRef.current) {
-        isFiringRef.current = false;
-        onFireEnd();
-        if (overlay.hasPointerCapture(e.pointerId)) {
-          overlay.releasePointerCapture(e.pointerId);
-        }
-      }
-    };
-
-    const handlePointerCancel = (e: PointerEvent) => {
-      if (isFiringRef.current) {
-        isFiringRef.current = false;
-        onFireEnd();
-        if (overlay.hasPointerCapture(e.pointerId)) {
-          overlay.releasePointerCapture(e.pointerId);
-        }
-      }
-    };
-
-    overlay.addEventListener('pointerdown', handlePointerDown);
-    overlay.addEventListener('pointerup', handlePointerUp);
-    overlay.addEventListener('pointercancel', handlePointerCancel);
-
-    return () => {
-      overlay.removeEventListener('pointerdown', handlePointerDown);
-      overlay.removeEventListener('pointerup', handlePointerUp);
-      overlay.removeEventListener('pointercancel', handlePointerCancel);
-    };
-  }, [gameState, onFireStart, onFireEnd]);
-
   // Stop firing when game state changes
   useEffect(() => {
-    if (gameState !== 'playing' && isFiringRef.current) {
-      isFiringRef.current = false;
+    if (gameState !== 'playing') {
       onFireEnd();
     }
   }, [gameState, onFireEnd]);
@@ -117,26 +60,26 @@ export default function GameOverlay({
   const isTimerLow = timeRemaining < 10;
 
   return (
-    <div ref={overlayRef} className="absolute inset-0 pointer-events-none">
-      {/* HUD - Top bar with score, level, and timer */}
+    <div className="absolute inset-0 pointer-events-none">
+      {/* HUD - Top bar with score, level, and timer - MOBILE OPTIMIZED */}
       {(gameState === 'playing' || gameState === 'paused') && (
-        <div className="absolute top-2 left-2 right-2 sm:top-4 sm:left-4 sm:right-4 flex items-start justify-between gap-2 sm:gap-4 pointer-events-auto z-10">
+        <div className="absolute top-1 left-1 right-1 sm:top-2 sm:left-2 sm:right-2 flex items-start justify-between gap-1 sm:gap-2 pointer-events-auto z-10">
           {/* Left side - Score and Level */}
-          <div className="flex flex-col gap-1 sm:gap-2 bg-game-field/90 backdrop-blur-sm border-2 border-game-border rounded-lg px-3 py-2 sm:px-4 sm:py-2 shadow-lg">
-            <div className="text-xs sm:text-sm font-bold text-game-text-secondary">SCORE</div>
-            <div className="text-lg sm:text-2xl md:text-3xl font-bold text-game-primary tabular-nums">
+          <div className="flex flex-col gap-0.5 sm:gap-1 bg-game-field/90 backdrop-blur-sm border border-game-border rounded px-2 py-1 sm:px-3 sm:py-1.5 shadow-lg text-xs sm:text-sm">
+            <div className="text-[9px] sm:text-xs font-bold text-game-text-secondary">SCORE</div>
+            <div className="text-sm sm:text-lg md:text-xl font-bold text-game-primary tabular-nums leading-tight">
               {score.toString().padStart(6, '0')}
             </div>
-            <div className="text-xs sm:text-sm font-bold text-game-text-secondary mt-1">
-              LEVEL {level}
+            <div className="text-[9px] sm:text-xs font-bold text-game-text-secondary">
+              LVL {level}
             </div>
           </div>
 
           {/* Center - Timer */}
-          <div className="flex flex-col items-center gap-1 bg-game-field/90 backdrop-blur-sm border-2 border-game-border rounded-lg px-3 py-2 sm:px-4 sm:py-2 shadow-lg">
-            <div className="text-xs sm:text-sm font-bold text-game-text-secondary">TIME</div>
+          <div className="flex flex-col items-center gap-0.5 bg-game-field/90 backdrop-blur-sm border border-game-border rounded px-2 py-1 sm:px-3 sm:py-1.5 shadow-lg">
+            <div className="text-[9px] sm:text-xs font-bold text-game-text-secondary">TIME</div>
             <div
-              className={`text-xl sm:text-3xl md:text-4xl font-bold tabular-nums transition-colors ${
+              className={`text-base sm:text-xl md:text-2xl font-bold tabular-nums transition-colors leading-tight ${
                 isTimerLow ? 'text-red-500 animate-pulse' : 'text-game-primary'
               }`}
             >
@@ -149,77 +92,62 @@ export default function GameOverlay({
             onClick={onPause}
             variant="outline"
             size="icon"
-            className="bg-game-field/90 backdrop-blur-sm border-2 border-game-border hover:bg-game-primary/20 h-12 w-12 sm:h-14 sm:w-14"
+            className="bg-game-field/90 backdrop-blur-sm border border-game-border hover:bg-game-primary/20 h-8 w-8 sm:h-10 sm:w-10"
           >
-            <Pause className="h-5 w-5 sm:h-6 sm:w-6" />
+            <Pause className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </div>
       )}
 
-      {/* Progress bar - Below HUD */}
+      {/* Progress bar - Below HUD - MOBILE OPTIMIZED WITH MAX WIDTH */}
       {(gameState === 'playing' || gameState === 'paused') && !bossActive && (
-        <div className="absolute top-20 sm:top-24 left-2 right-2 sm:left-4 sm:right-4 pointer-events-auto z-10">
-          <div className="bg-game-field/90 backdrop-blur-sm border-2 border-game-border rounded-lg px-3 py-2 sm:px-4 sm:py-3 shadow-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs sm:text-sm font-bold text-game-text-secondary">
-                OBSTACLES DESTROYED
+        <div className="absolute top-12 sm:top-14 left-1 right-1 sm:left-2 sm:right-2 pointer-events-auto z-10 flex justify-center">
+          <div className="w-full max-w-xs sm:max-w-sm md:max-w-md bg-game-field/90 backdrop-blur-sm border border-game-border rounded px-2 py-1 sm:px-3 sm:py-1.5 shadow-lg">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[9px] sm:text-xs font-bold text-game-text-secondary">
+                DESTROYED
               </span>
-              <span className="text-xs sm:text-sm font-bold text-game-primary tabular-nums">
-                {destroyed} / {target}
+              <span className="text-[9px] sm:text-xs font-bold text-game-primary tabular-nums">
+                {destroyed}/{target}
               </span>
             </div>
-            <Progress value={progressPercent} className="h-2 sm:h-3" />
+            <Progress value={progressPercent} className="h-1.5 sm:h-2" />
           </div>
         </div>
       )}
 
-      {/* Boss health bar */}
+      {/* Boss health bar - MOBILE OPTIMIZED WITH MAX WIDTH */}
       {(gameState === 'playing' || gameState === 'paused') && bossActive && (
-        <div className="absolute top-20 sm:top-24 left-2 right-2 sm:left-4 sm:right-4 pointer-events-auto z-10">
-          <div className="bg-game-field/90 backdrop-blur-sm border-2 border-red-500 rounded-lg px-3 py-2 sm:px-4 sm:py-3 shadow-lg shadow-red-500/50">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs sm:text-sm font-bold text-red-400 animate-pulse">
-                ⚠️ BOSS ENCOUNTER
+        <div className="absolute top-12 sm:top-14 left-1 right-1 sm:left-2 sm:right-2 pointer-events-auto z-10 flex justify-center">
+          <div className="w-full max-w-xs sm:max-w-sm md:max-w-md bg-game-field/90 backdrop-blur-sm border border-red-500 rounded px-2 py-1 sm:px-3 sm:py-1.5 shadow-lg shadow-red-500/50">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[9px] sm:text-xs font-bold text-red-400 animate-pulse">
+                ⚠️ BOSS
               </span>
-              <span className="text-xs sm:text-sm font-bold text-red-400 tabular-nums">
-                {Math.max(0, bossMaxHits - bossHits)} HITS REMAINING
+              <span className="text-[9px] sm:text-xs font-bold text-red-400 tabular-nums">
+                {Math.max(0, bossMaxHits - bossHits)} HITS
               </span>
             </div>
-            <Progress value={bossProgressPercent} className="h-3 sm:h-4 [&>div]:bg-red-500" />
+            <Progress value={bossProgressPercent} className="h-2 sm:h-2.5 [&>div]:bg-red-500" />
           </div>
         </div>
       )}
 
-      {/* Virtual joystick - Bottom left */}
+      {/* Shoot button - Bottom left - MOBILE OPTIMIZED */}
       {(gameState === 'playing' || gameState === 'paused') && (
-        <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 md:bottom-8 md:left-8 pointer-events-auto z-20">
+        <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 pointer-events-auto z-20">
+          <ShootButton
+            onFireStart={onFireStart}
+            onFireEnd={onFireEnd}
+            disabled={gameState === 'paused'}
+          />
+        </div>
+      )}
+
+      {/* Virtual joystick - Bottom right - MOBILE OPTIMIZED */}
+      {(gameState === 'playing' || gameState === 'paused') && (
+        <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 pointer-events-auto z-20">
           <VirtualJoystick onMove={onJoystickMove} onNeutral={onJoystickNeutral} />
-        </div>
-      )}
-
-      {/* Fire instruction - Bottom right (mobile only) */}
-      {gameState === 'playing' && (
-        <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 md:hidden pointer-events-none z-20">
-          <div className="bg-game-field/90 backdrop-blur-sm border-2 border-game-border rounded-lg px-4 py-3 shadow-lg">
-            <div className="text-sm font-bold text-game-primary text-center">
-              TAP RIGHT SIDE
-              <br />
-              TO FIRE
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Desktop fire instruction */}
-      {gameState === 'playing' && (
-        <div className="hidden md:block absolute bottom-8 right-8 pointer-events-none z-20">
-          <div className="bg-game-field/90 backdrop-blur-sm border-2 border-game-border rounded-lg px-4 py-3 shadow-lg">
-            <div className="text-sm font-bold text-game-primary text-center">
-              CLICK ANYWHERE
-              <br />
-              TO FIRE
-            </div>
-          </div>
         </div>
       )}
 
@@ -231,7 +159,7 @@ export default function GameOverlay({
               JET RUSH
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-game-text-secondary max-w-md mx-auto">
-              Navigate with the joystick, fire to destroy obstacles, and defeat the boss to advance!
+              Use the joystick to move and the shoot button to fire. Destroy obstacles and defeat the boss!
             </p>
             <Button
               onClick={onStart}

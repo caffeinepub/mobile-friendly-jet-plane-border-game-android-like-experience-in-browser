@@ -1,11 +1,20 @@
+interface Position {
+  x: number;
+  y: number;
+}
+
+interface Vector {
+  x: number;
+  y: number;
+}
+
 /**
- * Convert game facing angle (degrees, 0=up, clockwise positive) to a normalized forward vector.
- * @param angleDegrees - Angle in degrees where 0=up, 90=right, 180=down, 270=left
- * @returns Normalized direction vector {x, y}
+ * Converts a game facing angle (degrees, 0 = up) to a normalized forward vector.
+ * @param angleDegrees - Angle in degrees where 0 = up, positive = clockwise
+ * @returns Normalized forward vector { x, y }
  */
-export function angleToForwardVector(angleDegrees: number): { x: number; y: number } {
+export function angleToForwardVector(angleDegrees: number): Vector {
   const angleRadians = (angleDegrees * Math.PI) / 180;
-  // 0 degrees = up = (0, -1), so we use sin for x and -cos for y
   return {
     x: Math.sin(angleRadians),
     y: -Math.cos(angleRadians),
@@ -13,51 +22,52 @@ export function angleToForwardVector(angleDegrees: number): { x: number; y: numb
 }
 
 /**
- * Convert pixel velocity to playfield-percent delta using independent width/height scaling.
- * @param velocityPixelsPerSecond - Speed in pixels per second
+ * Converts pixel velocity to playfield-percent velocity delta per frame.
+ * Uses independent width/height scaling for correct aspect ratio handling.
+ * @param pixelsPerSecond - Speed in pixels per second
  * @param direction - Normalized direction vector
  * @param playfieldWidth - Playfield width in pixels
  * @param playfieldHeight - Playfield height in pixels
  * @param deltaTime - Time delta in seconds
- * @returns Velocity in playfield percent {x, y}
+ * @returns Velocity in percent per frame { x, y }
  */
 export function pixelVelocityToPercent(
-  velocityPixelsPerSecond: number,
-  direction: { x: number; y: number },
+  pixelsPerSecond: number,
+  direction: Vector,
   playfieldWidth: number,
   playfieldHeight: number,
   deltaTime: number
-): { x: number; y: number } {
-  const pixelDeltaX = direction.x * velocityPixelsPerSecond * deltaTime;
-  const pixelDeltaY = direction.y * velocityPixelsPerSecond * deltaTime;
-  
+): Vector {
+  const pixelsThisFrame = pixelsPerSecond * deltaTime;
   return {
-    x: (pixelDeltaX / playfieldWidth) * 100,
-    y: (pixelDeltaY / playfieldHeight) * 100,
+    x: (direction.x * pixelsThisFrame / playfieldWidth) * 100,
+    y: (direction.y * pixelsThisFrame / playfieldHeight) * 100,
   };
 }
 
 /**
- * Calculate spawn position offset from entity position along forward direction.
- * @param position - Entity position in percent
- * @param forwardVector - Normalized forward direction
- * @param offsetPixels - Offset distance in pixels
+ * Calculates a new position offset from a base position along a direction vector.
+ * Used for spawning bullets ahead of the jet nose.
+ * @param basePosition - Starting position in percentage coordinates
+ * @param direction - Normalized direction vector
+ * @param offsetPixels - Distance to offset in pixels
  * @param playfieldWidth - Playfield width in pixels
  * @param playfieldHeight - Playfield height in pixels
- * @returns New position in percent
+ * @returns New position in percentage coordinates
  */
 export function offsetPosition(
-  position: { x: number; y: number },
-  forwardVector: { x: number; y: number },
+  basePosition: Position,
+  direction: Vector,
   offsetPixels: number,
   playfieldWidth: number,
   playfieldHeight: number
-): { x: number; y: number } {
-  const offsetX = (forwardVector.x * offsetPixels / playfieldWidth) * 100;
-  const offsetY = (forwardVector.y * offsetPixels / playfieldHeight) * 100;
+): Position {
+  // Convert offset to percentage, using independent width/height scaling
+  const offsetPercentX = (direction.x * offsetPixels / playfieldWidth) * 100;
+  const offsetPercentY = (direction.y * offsetPixels / playfieldHeight) * 100;
   
   return {
-    x: position.x + offsetX,
-    y: position.y + offsetY,
+    x: basePosition.x + offsetPercentX,
+    y: basePosition.y + offsetPercentY,
   };
 }

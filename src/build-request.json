@@ -1,75 +1,121 @@
 {
   "kind": "build_request",
-  "title": "Adjust bullet spawn position, scale obstacles per level, and improve player jet visuals",
-  "priority": "normal",
+  "title": "Fix jet thruster rendering, obstacle collisions, mobile UI scaling, and enforce landscape",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update bullet spawning so bullets originate from the player jet (or very close to the jet nose) rather than spawning far ahead of the player.",
+      "text": "Fix the player jet thruster/flame so the rear (back-side) fire always renders correctly for all facing angles (0–360°), including when the jet rotates, without being clipped/hidden, and with the flame originating from the jet’s engine/rear rather than a screen-relative “bottom” position.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-4"
         ],
         "quotes": [
-          "bullets should be produce some near from player"
+          "back side of fire not appearing properly."
         ]
       },
       "acceptanceCriteria": [
-        "When firing, new bullets appear visually at (or very near) the player jet position, aligned to the jet’s facing angle.",
-        "Bullet spawn does not appear noticeably detached from the jet (e.g., no large gap in front of the jet at the moment of spawn).",
-        "Bullet direction and rotation remain consistent with the player’s facing angle at the moment of firing."
+        "When moving (isThrusting=true), the thruster flame is always visible and attached to the jet’s rear for any rotation angle.",
+        "The thruster is not clipped by the jet container (no cut-off glow/flame) and remains visually behind the jet body.",
+        "When not moving (isThrusting=false), no thruster flame renders (current behavior preserved)."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Scale the number of obstacles per level in increments of 5: Level 1 spawns/contains 5 obstacles, Level 2 has 10 obstacles, Level 3 has 15 obstacles, and so on (5 * level).",
+      "text": "Fix obstacle-to-obstacle collision behavior so obstacles consistently collide with each other and separate properly, including edge cases (e.g., overlapping spawns, near-zero distance, and high relative speeds), and ensure collision resolution is applied in the game loop in a stable way (no tunneling/jitter/explosions of velocity).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-4"
         ],
         "quotes": [
-          "there should be multiples 5 obstacles on each level suppose in level 1 5 then in level 2 ten and so on like that"
+          "and obstacle to obstacle not colliding properly."
         ]
       },
       "acceptanceCriteria": [
-        "At the start of Level 1, there are 5 obstacles active in the playfield (excluding any boss entity, if bosses are separate).",
-        "At the start of Level 2, there are 10 obstacles active in the playfield (excluding any boss entity, if bosses are separate).",
-        "For any level N, the obstacle count target is 5*N and the game logic uses this target consistently (spawning and/or maintaining obstacles so the level difficulty scales accordingly).",
-        "The level progress UI (e.g., destroyed/target) reflects the updated per-level target (5*level)."
+        "When two obstacles overlap or touch, they are separated so they no longer overlap after resolution (even if their relative velocity indicates they are moving apart).",
+        "No NaN/Infinity velocities or positions occur when two obstacles share the same position or near-zero distance.",
+        "Obstacle collisions are observable during gameplay (obstacles bounce/deflect rather than pass through each other).",
+        "Collision resolution does not cause persistent jitter (obstacles do not vibrate in place) and does not create unrealistic speed spikes."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Update the player jet visual design so it clearly reads as a jet plane (sleek fuselage, wings, and pointed nose) and does not look like a “bud.”",
+      "text": "Make the HUD progress bar (and boss bar when shown) compact for mobile landscape: reduce its visual width and overall footprint so it no longer spans the full screen width, while keeping the same progress values and readability.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-4"
         ],
         "quotes": [
-          "change the player structure it is looking like a bud not like a jet plane"
+          "and progress bar is too much lengthy in width"
         ]
       },
       "acceptanceCriteria": [
-        "The player entity renders with a clearly jet-like silhouette (distinct wings and a pointed nose).",
-        "The updated jet art remains correctly centered on the player position and rotates smoothly with the same facing-angle behavior as before.",
-        "No visual regressions: thrust visuals still appear only when the player is moving (thrusting), and the player remains visible on common screen sizes (mobile + desktop)."
+        "In mobile landscape, the progress/boss bar container is constrained to a reasonable max width and is centered (not full-bleed left-to-right).",
+        "Text and padding for the progress/boss bar are reduced for small screens while staying readable (no overflow/cutoff).",
+        "Progress values and bar fill behavior remain correct."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Adjust overall in-game UI sizing for mobile devices so all HUD and controls (score panel, timer panel, pause button, progress/boss bar, joystick, shoot button) appear smaller and better fit mobile landscape screens without overlapping the playfield or each other.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "every thing should look small for mobile device."
+        ]
+      },
+      "acceptanceCriteria": [
+        "On mobile-sized viewports, HUD panels and controls are visibly smaller than current defaults and do not overlap each other.",
+        "Controls remain fully usable via touch (no broken pointer/touch interactions).",
+        "No critical HUD information (score, level, timer, progress) is cut off on common mobile landscape sizes."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Ensure the game always opens and stays in horizontal landscape on mobile: implement a landscape enforcement flow that (a) attempts to lock orientation to landscape when supported, and (b) when portrait is detected, shows a blocking “rotate to landscape” overlay and prevents gameplay input/updates until the device is in landscape.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "and it should alway open in horizontal landscape."
+        ]
+      },
+      "acceptanceCriteria": [
+        "If the device is in portrait, a full-screen overlay appears instructing the user in English to rotate to landscape, and gameplay is paused/blocked until landscape.",
+        "If the browser supports Screen Orientation API, the app attempts to lock to landscape (best-effort; no crashes if unsupported/denied).",
+        "When rotated to landscape, the overlay disappears and gameplay/UI are usable normally.",
+        "Orientation handling works without modifying any files under frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or any sources in frontend/src/components/ui."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files listed as immutable in SYSTEM_CONTEXT (e.g., frontend/src/main.tsx, frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/components/ui/*).",
-    "Keep all backend logic (if any is added later) within the single Motoko actor at backend/main.mo; do not introduce additional backend services."
+    "Frontend immutable paths must not be edited: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
+    "Backend must remain a single Motoko actor; no new backend services."
   ],
   "nonGoals": [
-    "Adding new weapons, ammo systems, power-ups, or bullet types.",
-    "Introducing new authentication methods beyond Internet Identity.",
-    "Adding multiplayer, real-time networking, or backend persistence for game state."
+    "Adding new gameplay mechanics, levels, weapons, or new obstacle types beyond fixing collision behavior.",
+    "Changing authentication or adding third-party integrations."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }
