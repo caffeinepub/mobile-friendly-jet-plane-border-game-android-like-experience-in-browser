@@ -1,218 +1,32 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 13,
-  "summary": "Mobile-friendly (Android-like) jet game in a browser with four borders; jet is rendered (not a bitmap image), can fire bullets, and includes an attractive UI design.",
-  "architectural_notes": [
-    "Target platform is Android; project should be compatible with Android Studio workflow (open/build/run).",
-    "Player jet should be rendered programmatically (e.g., canvas/vector shapes) rather than a static image asset.",
-    "Mobile controls should use a virtual joystick; jet orientation/rotation should follow movement direction; on-screen controls should be positioned per spec (joystick left, fire button left).",
-    "Bullets should spawn from the jet’s front/nose position and initial velocity should align with the jet’s current facing direction.",
-    "Add collision handling outcomes: player-obstacle, bullet-obstacle, and player-border collisions should trigger explosion feedback and transition game state to Game Over.",
-    "Obstacle-obstacle collisions should resolve via a reflection/bounce response (reverse or reflect velocity) to separate entities and prevent overlap.",
-    "Prefer responsive scaling for mobile: tune sizes of jet/obstacles/bullets/UI so the playfield reads well on small screens."
-  ],
-  "known_issues": [
-    "Production deployment domain slug rejected: must be 5–50 chars and contain only letters, numbers, and hyphens."
-  ],
+  "projectStateVersion": 3,
+  "summary": "Jet-plane shooter game: adjust bullet spawn position near the player, scale obstacles by level in increments of 5, and update player visuals to look like a jet plane.",
+  "architectural_notes": [],
+  "known_issues": [],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-build-a-mobile-friendly-browser-game-experience-react-app-that-mimics-an-android-mobile-game-since-the-project-must-remain-within-the-provided-react-motoko-template-and-cannot-generate-a-native-android-studio-kotlin-java-project",
-      "title": "Build a mobile-friendly browser game experience (React app) that mimics an Android mobile game, since the project must remain within the provided React+Motoko template and cannot generate a native Android Studio (Kotlin/Java) project.",
+      "id": "feature-update-bullet-spawning-so-bullets-originate-from-the-player-jet-or-very-close-to-the-jet-nose-rather-than-spawning-far-ahead-of-the-player",
+      "title": "Update bullet spawning so bullets originate from the player jet (or very close to the jet nose) rather than spawning far ahead of the player.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-implement-the-core-playfield-with-exactly-four-visible-borders-defining-the-playable-area-and-enforce-collision-constraints-so-the-player-cannot-move-outside-these-borders",
-      "title": "Implement the core playfield with exactly four visible borders defining the playable area, and enforce collision/constraints so the player cannot move outside these borders.",
+      "id": "feature-scale-the-number-of-obstacles-per-level-in-increments-of-5-level-1-spawns-contains-5-obstacles-level-2-has-10-obstacles-level-3-has-15-obstacles-and-so-on-5-level",
+      "title": "Scale the number of obstacles per level in increments of 5: Level 1 spawns/contains 5 obstacles, Level 2 has 10 obstacles, Level 3 has 15 obstacles, and so on (5 * level).",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-add-a-controllable-player-entity-visually-represented-as-a-jet-plane-top-down-or-angled-2d-3d-style-is-acceptable-and-basic-movement-controls-suitable-for-mobile-e-g-drag-to-move-or-virtual-joystick",
-      "title": "Add a controllable player entity visually represented as a jet plane (top-down or angled 2D/3D style is acceptable) and basic movement controls suitable for mobile (e.g., drag-to-move or virtual joystick).",
+      "id": "feature-update-the-player-jet-visual-design-so-it-clearly-reads-as-a-jet-plane-sleek-fuselage-wings-and-pointed-nose-and-does-not-look-like-a-bud",
+      "title": "Update the player jet visual design so it clearly reads as a jet plane (sleek fuselage, wings, and pointed nose) and does not look like a “bud.”",
       "reqIds": [
         "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-minimal-game-ui-states-for-usability-start-or-tap-to-start-pause-resume-and-restart-after-stopping-gameplay-e-g-when-the-user-chooses-to-reset",
-      "title": "Add minimal game UI states for usability: Start (or Tap to Start), Pause/Resume, and Restart after stopping gameplay (e.g., when the user chooses to reset).",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-create-and-apply-a-coherent-visual-theme-colors-typography-layout-appropriate-for-an-arcade-jet-game-and-apply-it-consistently-across-the-game-screen-and-ui-overlays-avoid-blue-purple-as-the-primary-palette",
-      "title": "Create and apply a coherent visual theme (colors, typography, layout) appropriate for an arcade jet game and apply it consistently across the game screen and UI overlays. Avoid blue/purple as the primary palette.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-generated-static-image-assets-for-the-jet-and-optional-ui-iconography-under-frontend-public-assets-generated-and-render-them-in-the-ui-game-scene-without-routing-images-through-the-backend",
-      "title": "Add generated static image assets for the jet and (optional) UI/iconography under frontend/public/assets/generated and render them in the UI/game scene without routing images through the backend.",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-replace-the-player-jet-rendering-so-it-is-not-an-image-asset-update-the-player-entity-to-be-drawn-using-non-image-primitives-e-g-html-css-shapes-and-or-inline-svg-while-preserving-the-current-positioning-and-movement-behavior",
-      "title": "Replace the player jet rendering so it is not an image asset: update the player entity to be drawn using non-image primitives (e.g., HTML/CSS shapes and/or inline SVG) while preserving the current positioning and movement behavior.",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-shooting-mechanics-so-the-player-jet-can-produce-fire-bullets-during-gameplay-including-bullet-spawning-forward-movement-and-cleanup-when-bullets-leave-the-playfield-provide-a-mobile-friendly-control-for-firing-bullets-while-the-game-is-in-the-playing-state",
-      "title": "Implement shooting mechanics so the player jet can produce/fire bullets during gameplay, including bullet spawning, forward movement, and cleanup when bullets leave the playfield. Provide a mobile-friendly control for firing bullets while the game is in the 'playing' state.",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-improve-the-overall-in-game-ui-visual-presentation-to-be-more-amazing-and-attractive-enhancing-the-start-pause-resume-restart-overlays-and-in-game-hud-while-staying-consistent-with-the-existing-orange-red-arcade-theme-and-keeping-all-user-facing-text-in-english",
-      "title": "Improve the overall in-game UI/visual presentation to be more amazing and attractive, enhancing the start/pause/resume/restart overlays and in-game HUD while staying consistent with the existing orange/red arcade theme and keeping all user-facing text in English.",
-      "reqIds": [
-        "REQ-9"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-replace-the-current-drag-to-move-pointer-control-with-a-virtual-joystick-control-that-drives-player-movement-while-the-game-state-is-playing",
-      "title": "Replace the current drag-to-move pointer control with a virtual joystick control that drives player movement while the game state is \"playing\".",
-      "reqIds": [
-        "REQ-10"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-the-player-jet-rendering-so-that-the-jet-rotates-to-face-the-current-movement-direction-based-on-joystick-input-while-preserving-the-existing-svg-jet-visuals-and-positioning",
-      "title": "Update the player jet rendering so that the jet rotates to face the current movement direction (based on joystick input) while preserving the existing SVG jet visuals and positioning.",
-      "reqIds": [
-        "REQ-11"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-mobile-friendly-on-screen-virtual-joystick-ui-positioned-on-the-left-side-of-the-screen-during-gameplay-and-ensure-it-captures-touch-pointer-input-without-triggering-other-game-interactions",
-      "title": "Add a mobile-friendly on-screen virtual joystick UI positioned on the left side of the screen during gameplay, and ensure it captures touch/pointer input without triggering other game interactions.",
-      "reqIds": [
-        "REQ-12"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-move-the-fire-button-control-to-the-left-side-of-the-screen-during-gameplay-left-hand-placement-and-ensure-it-remains-easy-to-press-without-overlapping-the-joystick",
-      "title": "Move the FIRE button control to the left side of the screen during gameplay (left-hand placement), and ensure it remains easy to press without overlapping the joystick.",
-      "reqIds": [
-        "REQ-13"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-any-gameplay-instruction-text-shown-in-overlays-to-reflect-joystick-movement-keep-all-user-facing-text-in-english",
-      "title": "Update any gameplay instruction text shown in overlays to reflect joystick movement (keep all user-facing text in English).",
-      "reqIds": [
-        "REQ-14"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-moving-obstacle-entities-that-spawn-during-gameplay-and-move-in-a-random-zig-zag-pattern-within-the-playfield-while-the-game-state-is-playing",
-      "title": "Add moving obstacle entities that spawn during gameplay and move in a random zig-zag pattern within the playfield while the game state is \"playing\".",
-      "reqIds": [
-        "REQ-15"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-bullet-spawning-so-each-bullet-originates-from-the-jet-s-front-nose-the-face-side-based-on-the-jet-s-current-rotation-rather-than-always-spawning-above-the-jet",
-      "title": "Update bullet spawning so each bullet originates from the jet’s front/nose (the \"face side\") based on the jet’s current rotation, rather than always spawning above the jet.",
-      "reqIds": [
-        "REQ-16"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-bullet-movement-so-bullets-travel-forward-in-the-same-direction-as-the-jet-s-facing-direction-at-the-moment-the-bullet-is-fired",
-      "title": "Update bullet movement so bullets travel forward in the same direction as the jet’s facing direction at the moment the bullet is fired.",
-      "reqIds": [
-        "REQ-17"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-revise-the-visual-ui-structure-of-the-playerjet-and-obstacle-entities-to-a-new-more-clearly-readable-shape-language-still-consistent-with-the-existing-orange-red-arcade-theme-without-changing-their-positioning-system-percentage-based-or-breaking-rotation-movement-behavior",
-      "title": "Revise the visual/UI structure of the PlayerJet and Obstacle entities to a new, more clearly readable shape language (still consistent with the existing orange/red arcade theme), without changing their positioning system (percentage-based) or breaking rotation/movement behavior.",
-      "reqIds": [
-        "REQ-18"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-a-bomb-like-explosion-effect-that-can-be-displayed-at-an-x-y-position-inside-the-playfield-and-can-be-triggered-by-gameplay-events-player-crash-bullet-hit-border-crash-the-explosion-should-be-visible-and-feel-impactful-flash-expanding-blast-fading-embers-smoke-like-glow-and-it-must-not-require-image-assets",
-      "title": "Implement a bomb-like explosion effect that can be displayed at an (x,y) position inside the playfield and can be triggered by gameplay events (player crash, bullet hit, border crash). The explosion should be visible and feel impactful (flash + expanding blast + fading embers/smoke-like glow), and it must not require image assets.",
-      "reqIds": [
-        "REQ-19"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-game-over-flow-to-the-game-state-machine-and-ui-when-a-game-ending-collision-occurs-stop-gameplay-updates-play-the-explosion-at-the-collision-point-and-then-show-a-game-over-overlay-with-a-restart-action-all-user-facing-text-in-english",
-      "title": "Add a 'game over' flow to the game state machine and UI: when a game-ending collision occurs, stop gameplay updates, play the explosion at the collision point, and then show a Game Over overlay with a Restart action (all user-facing text in English).",
-      "reqIds": [
-        "REQ-20"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-collision-detection-and-outcomes-during-the-playing-state-player-obstacle-trigger-explosion-at-collision-point-and-transition-to-game-over-bullet-obstacle-trigger-explosion-at-collision-point-and-transition-to-game-over-player-border-walls-when-the-player-hits-a-playfield-border-trigger-explosion-and-transition-to-game-over-do-not-merely-clamp-and-continue",
-      "title": "Implement collision detection and outcomes during the 'playing' state:\n- Player ↔ Obstacle: trigger explosion at collision point and transition to Game Over.\n- Bullet ↔ Obstacle: trigger explosion at collision point and transition to Game Over.\n- Player ↔ Border/Walls: when the player hits a playfield border, trigger explosion and transition to Game Over (do not merely clamp and continue).",
-      "reqIds": [
-        "REQ-21"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-obstacle-obstacle-collision-response-when-two-obstacles-collide-overlap-reflect-them-so-they-move-away-from-each-other-swap-reflect-velocity-components-to-produce-an-opposite-direction-bounce-while-keeping-them-within-the-playfield-bounds",
-      "title": "Add obstacle-obstacle collision response: when two obstacles collide/overlap, reflect them so they move away from each other (swap/reflect velocity components to produce an opposite-direction bounce) while keeping them within the playfield bounds.",
-      "reqIds": [
-        "REQ-22"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-bullets-always-fire-and-travel-in-the-exact-direction-the-player-jet-is-currently-facing-at-the-moment-of-firing-including-correct-forward-spawn-offset-from-the-jet-nose-and-consistent-movement-direction-regardless-of-joystick-input-changes-after-firing",
-      "title": "Ensure bullets always fire and travel in the exact direction the player jet is currently facing at the moment of firing, including correct forward spawn offset from the jet nose and consistent movement direction regardless of joystick input changes after firing.",
-      "reqIds": [
-        "REQ-23"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-update-obstacle-rendering-to-a-clear-hexagon-shape-no-square-diamond-silhouette-while-preserving-the-existing-position-system-percentage-based-positioning-and-keeping-the-current-arcade-orange-red-hazard-styling-and-glow-feel",
-      "title": "Update obstacle rendering to a clear hexagon shape (no square/diamond silhouette), while preserving the existing position system (percentage-based positioning) and keeping the current arcade orange/red hazard styling and glow feel.",
-      "reqIds": [
-        "REQ-24"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-adjust-overall-game-sizing-for-small-mobile-screens-by-scaling-down-gameplay-entities-jet-bullets-obstacles-and-ui-controls-hud-fire-button-joystick-so-the-playfield-feels-less-crowded-and-fits-comfortably-on-typical-mobile-viewports-without-overlapping-or-clipping",
-      "title": "Adjust overall game sizing for small mobile screens by scaling down gameplay entities (jet, bullets, obstacles) and UI controls (HUD, FIRE button, joystick) so the playfield feels less crowded and fits comfortably on typical mobile viewports without overlapping or clipping.",
-      "reqIds": [
-        "REQ-25"
       ],
       "version": 1
     }
@@ -220,102 +34,24 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Create an Android mobile game project that can be opened/built in Android Studio.",
+      "summary": "Spawn bullets from (or very near) the player position rather than elsewhere",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Game design: four borders (screen boundaries/walls) defining the play area.",
+      "summary": "Scale obstacle count by level: Level 1 = 5, Level 2 = 10, etc. (increase by 5 each level)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Player character: controllable jet-plane-like player entity.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Render the jet player as a non-image (e.g., vector/shape/canvas) instead of using a sprite image.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Add shooting mechanics: the jet produces/fires bullets during gameplay.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Improve overall UI/visual design to be more attractive for users (polished arcade-style theme).",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Add virtual joystick movement controls: joystick-based movement with the jet facing the movement direction; place the joystick on the left and the fire button on the left (as requested).",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-8",
-      "summary": "Add moving obstacles that travel in a random zig-zag pattern within the playfield (with appropriate boundary/collision behavior).",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-9",
-      "summary": "Update shooting so bullets spawn from the jet’s face/nose (front side) based on its current facing/rotation direction.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-10",
-      "summary": "Update player/obstacle UI visuals/structure (revise how the player and obstacles are visually presented).",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-11",
-      "summary": "Add explosion (bomb-like) effect and trigger Game Over when the player collides with an obstacle.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-12",
-      "summary": "Add explosion effect and trigger Game Over when a bullet hits an obstacle.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-13",
-      "summary": "Add explosion effect and trigger Game Over when the player hits the playfield borders/walls.",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-14",
-      "summary": "When obstacles collide with each other, make them reflect/bounce and move in opposite directions (basic obstacle-obstacle collision response).",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-15",
-      "summary": "Update obstacle visuals so obstacles are rendered as a hexagon shape (consistent with the current theme).",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-16",
-      "summary": "Adjust overall entity/UI sizing and layout to better fit mobile screens (make everything smaller/more appropriately scaled for mobile).",
+      "summary": "Redesign player structure/visuals so it looks like a jet plane (not a \"bud\")",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Mobile-friendly jet plane border game (Android-like experience in browser)",
+  "projectName": "Adjust bullet spawn position, scale obstacles per level, and improve player jet visuals",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

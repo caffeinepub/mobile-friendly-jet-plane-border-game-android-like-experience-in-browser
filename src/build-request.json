@@ -1,72 +1,72 @@
 {
   "kind": "build_request",
-  "title": "Fix bullet direction, redesign obstacles as hexagons, and scale UI/entities for better mobile fit",
+  "title": "Adjust bullet spawn position, scale obstacles per level, and improve player jet visuals",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-23",
-      "text": "Ensure bullets always fire and travel in the exact direction the player jet is currently facing at the moment of firing, including correct forward spawn offset from the jet nose and consistent movement direction regardless of joystick input changes after firing.",
+      "id": "REQ-1",
+      "text": "Update bullet spawning so bullets originate from the player jet (or very close to the jet nose) rather than spawning far ahead of the player.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "bullets should be in proper direction"
+          "bullets should be produce some near from player"
         ]
       },
       "acceptanceCriteria": [
-        "When the jet rotates and the FIRE control is pressed, the bullet initial direction matches the jet facing direction at that instant.",
-        "Bullets do not drift toward a new direction when the player changes joystick direction after firing.",
-        "Bullets visibly originate from the front/nose of the jet (not from the center or side) across multiple facing angles (up/down/left/right/diagonal)."
+        "When firing, new bullets appear visually at (or very near) the player jet position, aligned to the jet’s facing angle.",
+        "Bullet spawn does not appear noticeably detached from the jet (e.g., no large gap in front of the jet at the moment of spawn).",
+        "Bullet direction and rotation remain consistent with the player’s facing angle at the moment of firing."
       ]
     },
     {
-      "id": "REQ-24",
-      "text": "Update obstacle rendering to a clear hexagon shape (no square/diamond silhouette), while preserving the existing position system (percentage-based positioning) and keeping the current arcade orange/red hazard styling and glow feel.",
+      "id": "REQ-2",
+      "text": "Scale the number of obstacles per level in increments of 5: Level 1 spawns/contains 5 obstacles, Level 2 has 10 obstacles, Level 3 has 15 obstacles, and so on (5 * level).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "make obstacle hexagon shape"
+          "there should be multiples 5 obstacles on each level suppose in level 1 5 then in level 2 ten and so on like that"
         ]
       },
       "acceptanceCriteria": [
-        "Each obstacle’s primary body silhouette is a hexagon (six sides) at all times.",
-        "Obstacle positioning still uses the same percentage-based left/top translate(-50%,-50%) approach and continues moving/colliding as before.",
-        "Obstacle visuals remain consistent with the current orange/red arcade theme (glow/high-contrast hazard look) and do not introduce blue/purple as primary colors."
+        "At the start of Level 1, there are 5 obstacles active in the playfield (excluding any boss entity, if bosses are separate).",
+        "At the start of Level 2, there are 10 obstacles active in the playfield (excluding any boss entity, if bosses are separate).",
+        "For any level N, the obstacle count target is 5*N and the game logic uses this target consistently (spawning and/or maintaining obstacles so the level difficulty scales accordingly).",
+        "The level progress UI (e.g., destroyed/target) reflects the updated per-level target (5*level)."
       ]
     },
     {
-      "id": "REQ-25",
-      "text": "Adjust overall game sizing for small mobile screens by scaling down gameplay entities (jet, bullets, obstacles) and UI controls (HUD, FIRE button, joystick) so the playfield feels less crowded and fits comfortably on typical mobile viewports without overlapping or clipping.",
+      "id": "REQ-3",
+      "text": "Update the player jet visual design so it clearly reads as a jet plane (sleek fuselage, wings, and pointed nose) and does not look like a “bud.”",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "every thing should be small to look in mobile device proper"
+          "change the player structure it is looking like a bud not like a jet plane"
         ]
       },
       "acceptanceCriteria": [
-        "On common mobile viewport sizes (e.g., ~360×640 CSS px), the jet, obstacles, and bullets appear noticeably smaller than before and remain easy to visually track.",
-        "The FIRE button and joystick do not overlap each other or cover critical playfield content; both remain easy to press.",
-        "Top HUD elements do not collide with borders or overlap the playfield content excessively on small screens.",
-        "Collision behavior remains consistent with the resized visuals (hitboxes updated to match new apparent sizes so collisions feel fair)."
+        "The player entity renders with a clearly jet-like silhouette (distinct wings and a pointed nose).",
+        "The updated jet art remains correctly centered on the player position and rotates smoothly with the same facing-angle behavior as before.",
+        "No visual regressions: thrust visuals still appear only when the player is moving (thrusting), and the player remains visible on common screen sizes (mobile + desktop)."
       ]
     }
   ],
   "constraints": [
-    "Frontend must remain React + TypeScript + Tailwind and continue using the existing component structure (e.g., GameScreen, entities, overlay).",
-    "Do not edit any files under frontend/src/components/ui or other immutable paths listed in SYSTEM_CONTEXT.",
-    "Keep all user-facing text in English."
+    "Do not modify files listed as immutable in SYSTEM_CONTEXT (e.g., frontend/src/main.tsx, frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/components/ui/*).",
+    "Keep all backend logic (if any is added later) within the single Motoko actor at backend/main.mo; do not introduce additional backend services."
   ],
   "nonGoals": [
-    "Adding new gameplay modes, scoring systems, power-ups, or new entity types beyond resizing and obstacle shape changes.",
-    "Backend (Motoko) changes or persistence; this request is frontend-only."
+    "Adding new weapons, ammo systems, power-ups, or bullet types.",
+    "Introducing new authentication methods beyond Internet Identity.",
+    "Adding multiplayer, real-time networking, or backend persistence for game state."
   ],
   "imageRequirements": {
     "required": [],

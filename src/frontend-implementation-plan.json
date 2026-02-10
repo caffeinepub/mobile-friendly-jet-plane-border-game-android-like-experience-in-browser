@@ -1,89 +1,69 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Jet Rush: bullet direction fix, hexagon obstacles, and mobile-friendly scaling",
+  "title": "Jet Rush: bullet spawn alignment, per-level obstacle scaling, and improved jet visuals",
   "requirements": [
     {
-      "id": "REQ-23",
-      "summary": "Make bullets spawn from the jet nose and travel in the exact facing direction captured at fire time, unaffected by later joystick changes.",
+      "id": "REQ-1",
+      "summary": "Spawn bullets at/near the player jet nose and aligned to the current facing angle.",
       "acceptanceCriteria": [
-        "When the jet rotates and the FIRE control is pressed, the bullet initial direction matches the jet facing direction at that instant.",
-        "Bullets do not drift toward a new direction when the player changes joystick direction after firing.",
-        "Bullets visibly originate from the front/nose of the jet (not from the center or side) across multiple facing angles (up/down/left/right/diagonal)."
+        "When firing, new bullets appear visually at (or very near) the player jet position, aligned to the jet’s facing angle.",
+        "Bullet spawn does not appear noticeably detached from the jet (e.g., no large gap in front of the jet at the moment of spawn).",
+        "Bullet direction and rotation remain consistent with the player’s facing angle at the moment of firing."
       ],
       "file_operations": [
         {
           "path": "frontend/src/game/GameScreen.tsx",
           "operation": "modify",
-          "description": "Capture firing snapshot reliably by storing latest player position and facing angle in refs (updated during movement), and use those refs inside the fire handler so bullet direction/spawn offset always match the jet at the moment of firing (independent of later joystick updates). Update bullet spawn offset logic so it is computed in a consistent forward direction from the jet nose for all angles, rather than relying on a fixed percentage that can misplace the spawn point across screen sizes."
+          "description": "Adjust bullet spawn logic to originate from the jet (or very near the nose) by reducing/removing the large forward spawn offset and (if needed) deriving a small nose offset from the current jet rendering size/scale; ensure the bullet's initial rotation and velocity still use the facing-angle snapshot at fire time."
         },
         {
-          "path": "frontend/src/game/entities/Bullet.tsx",
+          "path": "frontend/src/game/physics/vectors.ts",
           "operation": "modify",
-          "description": "Optionally align bullet visual orientation with its travel direction (e.g., accept a rotation/angle prop derived from bullet direction) so the projectile’s appearance matches its trajectory, while keeping percentage-based positioning and existing glow styling."
+          "description": "If needed to support tighter bullet spawn placement across screen sizes, extend the position-offset helper(s) to allow a small, configurable forward offset and/or a secondary lateral offset while preserving the same angle-to-forward-vector convention used by the jet and bullet."
         }
       ]
     },
     {
-      "id": "REQ-24",
-      "summary": "Redesign obstacles to render as a clear hexagon silhouette while preserving existing positioning/movement and the orange/red arcade hazard glow style.",
+      "id": "REQ-2",
+      "summary": "Scale obstacles per level to a target of 5 * level and reflect this in gameplay and UI progress.",
       "acceptanceCriteria": [
-        "Each obstacle’s primary body silhouette is a hexagon (six sides) at all times.",
-        "Obstacle positioning still uses the same percentage-based left/top translate(-50%,-50%) approach and continues moving/colliding as before.",
-        "Obstacle visuals remain consistent with the current orange/red arcade theme (glow/high-contrast hazard look) and do not introduce blue/purple as primary colors."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/game/entities/Obstacle.tsx",
-          "operation": "modify",
-          "description": "Replace the current rotated square/diamond body with a true six-sided hexagon (e.g., SVG polygon or CSS clip-path polygon) and adapt inner frame/stripes/core/rings to match the hex geometry. Keep the same absolute positioning style (left/top in %, translate(-50%,-50%)) and retain the existing orange/red hazard glow/contrast styling (no new primary blue/purple tones)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-25",
-      "summary": "Scale down gameplay entities and on-screen controls for small mobile viewports, updating hitboxes to match resized visuals and preventing UI overlap/clipping.",
-      "acceptanceCriteria": [
-        "On common mobile viewport sizes (e.g., ~360×640 CSS px), the jet, obstacles, and bullets appear noticeably smaller than before and remain easy to visually track.",
-        "The FIRE button and joystick do not overlap each other or cover critical playfield content; both remain easy to press.",
-        "Top HUD elements do not collide with borders or overlap the playfield content excessively on small screens.",
-        "Collision behavior remains consistent with the resized visuals (hitboxes updated to match new apparent sizes so collisions feel fair)."
+        "At the start of Level 1, there are 5 obstacles active in the playfield (excluding any boss entity, if bosses are separate).",
+        "At the start of Level 2, there are 10 obstacles active in the playfield (excluding any boss entity, if bosses are separate).",
+        "For any level N, the obstacle count target is 5*N and the game logic uses this target consistently (spawning and/or maintaining obstacles so the level difficulty scales accordingly).",
+        "The level progress UI (e.g., destroyed/target) reflects the updated per-level target (5*level)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/game/GameScreen.tsx",
           "operation": "modify",
-          "description": "Introduce responsive sizing constants (or scale factors derived from measured playfield/container size) for jet/bullet/obstacle render sizes and collision radii. Update collision and bounds checks (JET_SIZE, OBSTACLE_SIZE, BULLET_SIZE) and bullet spawn offset so hitboxes remain consistent with the new, smaller visuals on mobile while preserving gameplay feel."
-        },
-        {
-          "path": "frontend/src/game/entities/PlayerJet.tsx",
-          "operation": "modify",
-          "description": "Reduce jet render size on small screens using responsive Tailwind sizing (and any needed minor visual tweaks) so the playfield is less crowded while keeping the existing SVG jet design and rotations intact."
-        },
-        {
-          "path": "frontend/src/game/entities/Bullet.tsx",
-          "operation": "modify",
-          "description": "Reduce bullet visual dimensions on small screens (core/trail) using responsive Tailwind sizing so projectiles are proportionate to the resized jet and obstacles, while preserving the current arcade glow style."
-        },
-        {
-          "path": "frontend/src/game/entities/Obstacle.tsx",
-          "operation": "modify",
-          "description": "Scale down obstacle visual size on small screens (hexagon body and glow/rings) to match the updated collision sizing and improve readability on mobile."
+          "description": "Introduce a per-level obstacle target computed as (5 * level), spawn that many obstacles at the start of each level (when not in boss mode), and ensure any time-based obstacle spawning/maintenance respects the target (e.g., only spawn when current obstacle count is below target). Update level completion/destroyed tracking to use the same computed target."
         },
         {
           "path": "frontend/src/game/ui/GameOverlay.tsx",
           "operation": "modify",
-          "description": "Adjust HUD and control layout/sizing for small viewports: reduce top HUD padding/font sizes, reposition or tighten bottom control offsets, and shrink the FIRE button so it stays comfortably tappable without overlapping the joystick or covering critical playfield content."
+          "description": "Ensure the overlay progress display and level-complete screen use the provided per-level target (5 * level) consistently (e.g., destroyed/target and progress bar), without relying on a hard-coded default that could diverge from gameplay."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Improve the player jet visuals to read clearly as a sleek jet plane while preserving rotation and thrust behavior.",
+      "acceptanceCriteria": [
+        "The player entity renders with a clearly jet-like silhouette (distinct wings and a pointed nose).",
+        "The updated jet art remains correctly centered on the player position and rotates smoothly with the same facing-angle behavior as before.",
+        "No visual regressions: thrust visuals still appear only when the player is moving (thrusting), and the player remains visible on common screen sizes (mobile + desktop)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/game/entities/PlayerJet.tsx",
+          "operation": "modify",
+          "description": "Update the PlayerJet rendering to use the existing generated jet sprite at frontend/public/assets/generated/jet-player.dim_256x256.png (as the primary silhouette) and layer existing thrust/glow effects appropriately; keep the same centering (translate -50%/-50%) and rotation behavior. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/game/ui/VirtualJoystick.tsx",
+          "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Scale the joystick base/knob down for mobile (responsive Tailwind sizing) while maintaining accurate vector output; ensure the maxDistance/knob constraints continue to feel responsive at the new size."
-        },
-        {
-          "path": "frontend/src/game/Playfield.tsx",
-          "operation": "modify",
-          "description": "Reduce playfield padding/border/accent sizing responsively (e.g., smaller padding on mobile) to maximize usable play area and avoid HUD/controls clipping against the container edges while keeping the existing theme and structure."
+          "description": "If needed after switching to the sprite-based jet, tune existing jet-related utility animations/classes to ensure thrust visuals remain visible only while thrusting and do not obscure the new jet silhouette on mobile and desktop."
         }
       ]
     }

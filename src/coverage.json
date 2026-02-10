@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-09T12:13:45.116Z",
+  "generatedAt": "2026-02-10T08:21:06.265Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,50 +11,40 @@
     "implemented": 3,
     "items": [
       {
-        "id": "REQ-23",
-        "summary": "Ensure bullets always fire and travel in the exact direction the player jet is currently facing at the moment of firing, including correct forward spawn offset from the jet nose and consistent movement direction regardless of joystick input changes after firing.",
+        "id": "REQ-1",
+        "summary": "Update bullet spawning so bullets originate from the player jet (or very close to the jet nose) rather than spawning far ahead of the player.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/entities/Bullet.tsx"
+          "frontend/src/game/physics/vectors.ts"
         ],
         "matchedFiles": [
-          "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/entities/Bullet.tsx"
+          "frontend/src/game/GameScreen.tsx"
         ]
       },
       {
-        "id": "REQ-24",
-        "summary": "Update obstacle rendering to a clear hexagon shape (no square/diamond silhouette), while preserving the existing position system (percentage-based positioning) and keeping the current arcade orange/red hazard styling and glow feel.",
+        "id": "REQ-2",
+        "summary": "Scale the number of obstacles per level in increments of 5: Level 1 spawns/contains 5 obstacles, Level 2 has 10 obstacles, Level 3 has 15 obstacles, and so on (5 * level).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/game/entities/Obstacle.tsx"
+          "frontend/src/game/GameScreen.tsx",
+          "frontend/src/game/ui/GameOverlay.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/game/entities/Obstacle.tsx"
+          "frontend/src/game/GameScreen.tsx",
+          "frontend/src/game/ui/GameOverlay.tsx"
         ]
       },
       {
-        "id": "REQ-25",
-        "summary": "Adjust overall game sizing for small mobile screens by scaling down gameplay entities (jet, bullets, obstacles) and UI controls (HUD, FIRE button, joystick) so the playfield feels less crowded and fits comfortably on typical mobile viewports without overlapping or clipping.",
+        "id": "REQ-3",
+        "summary": "Update the player jet visual design so it clearly reads as a jet plane (sleek fuselage, wings, and pointed nose) and does not look like a “bud.”",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/game/GameScreen.tsx",
           "frontend/src/game/entities/PlayerJet.tsx",
-          "frontend/src/game/entities/Bullet.tsx",
-          "frontend/src/game/entities/Obstacle.tsx",
-          "frontend/src/game/ui/GameOverlay.tsx",
-          "frontend/src/game/ui/VirtualJoystick.tsx",
-          "frontend/src/game/Playfield.tsx"
+          "frontend/src/index.css"
         ],
         "matchedFiles": [
-          "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/entities/PlayerJet.tsx",
-          "frontend/src/game/entities/Bullet.tsx",
-          "frontend/src/game/entities/Obstacle.tsx",
-          "frontend/src/game/ui/GameOverlay.tsx",
-          "frontend/src/game/ui/VirtualJoystick.tsx",
-          "frontend/src/game/Playfield.tsx"
+          "frontend/src/game/entities/PlayerJet.tsx"
         ]
       }
     ]
@@ -65,12 +55,8 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/game/GameScreen.tsx",
-    "frontend/src/game/Playfield.tsx",
-    "frontend/src/game/entities/Bullet.tsx",
-    "frontend/src/game/entities/Obstacle.tsx",
     "frontend/src/game/entities/PlayerJet.tsx",
     "frontend/src/game/ui/GameOverlay.tsx",
-    "frontend/src/game/ui/VirtualJoystick.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-ensure-bullets-always-fire-and-travel-in-the-exact-direction-the-player-jet-is-currently-facing-at-the-moment-of-firing-including-correct-forward-spawn-offset-from-the-jet-nose-and-consistent-movement-direction-regardless-of-joystick-input-changes-after-firing",
-      "featureTitle": "Ensure bullets always fire and travel in the exact direction the player jet is currently facing at the moment of firing, including correct forward spawn offset from the jet nose and consistent movement direction regardless of joystick input changes after firing.",
+      "featureId": "feature-update-bullet-spawning-so-bullets-originate-from-the-player-jet-or-very-close-to-the-jet-nose-rather-than-spawning-far-ahead-of-the-player",
+      "featureTitle": "Update bullet spawning so bullets originate from the player jet (or very close to the jet nose) rather than spawning far ahead of the player.",
       "files": [
-        "frontend/src/game/GameScreen.tsx",
-        "frontend/src/game/entities/Bullet.tsx"
+        "frontend/src/game/GameScreen.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -16,15 +15,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-23"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-obstacle-rendering-to-a-clear-hexagon-shape-no-square-diamond-silhouette-while-preserving-the-existing-position-system-percentage-based-positioning-and-keeping-the-current-arcade-orange-red-hazard-styling-and-glow-feel",
-      "featureTitle": "Update obstacle rendering to a clear hexagon shape (no square/diamond silhouette), while preserving the existing position system (percentage-based positioning) and keeping the current arcade orange/red hazard styling and glow feel.",
+      "featureId": "feature-scale-the-number-of-obstacles-per-level-in-increments-of-5-level-1-spawns-contains-5-obstacles-level-2-has-10-obstacles-level-3-has-15-obstacles-and-so-on-5-level",
+      "featureTitle": "Scale the number of obstacles per level in increments of 5: Level 1 spawns/contains 5 obstacles, Level 2 has 10 obstacles, Level 3 has 15 obstacles, and so on (5 * level).",
       "files": [
-        "frontend/src/game/entities/Obstacle.tsx"
+        "frontend/src/game/GameScreen.tsx",
+        "frontend/src/game/ui/GameOverlay.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -34,21 +34,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-24"
+        "REQ-2"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-adjust-overall-game-sizing-for-small-mobile-screens-by-scaling-down-gameplay-entities-jet-bullets-obstacles-and-ui-controls-hud-fire-button-joystick-so-the-playfield-feels-less-crowded-and-fits-comfortably-on-typical-mobile-viewports-without-overlapping-or-clipping",
-      "featureTitle": "Adjust overall game sizing for small mobile screens by scaling down gameplay entities (jet, bullets, obstacles) and UI controls (HUD, FIRE button, joystick) so the playfield feels less crowded and fits comfortably on typical mobile viewports without overlapping or clipping.",
+      "featureId": "feature-update-the-player-jet-visual-design-so-it-clearly-reads-as-a-jet-plane-sleek-fuselage-wings-and-pointed-nose-and-does-not-look-like-a-bud",
+      "featureTitle": "Update the player jet visual design so it clearly reads as a jet plane (sleek fuselage, wings, and pointed nose) and does not look like a “bud.”",
       "files": [
-        "frontend/src/game/GameScreen.tsx",
-        "frontend/src/game/Playfield.tsx",
-        "frontend/src/game/entities/Bullet.tsx",
-        "frontend/src/game/entities/Obstacle.tsx",
-        "frontend/src/game/entities/PlayerJet.tsx",
-        "frontend/src/game/ui/GameOverlay.tsx",
-        "frontend/src/game/ui/VirtualJoystick.tsx"
+        "frontend/src/game/entities/PlayerJet.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -58,7 +52,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-25"
+        "REQ-3"
       ],
       "confidence": "high"
     }

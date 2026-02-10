@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Improve shooting accuracy, obstacle clarity, and overall usability on small mobile screens.
+**Goal:** Improve core gameplay feel by spawning bullets from the player jet, scaling obstacle counts by level, and updating the player jet art to look clearly like a jet plane.
 
 **Planned changes:**
-- Fix bullet spawning and movement so each bullet spawns from the jet’s nose and travels in the jet’s facing direction at the instant of firing, without being affected by later joystick changes.
-- Redesign obstacle visuals to render as a clear six-sided hexagon shape while keeping the current orange/red hazard glow styling and the existing percentage-based positioning/movement logic.
-- Scale down gameplay entities (jet, bullets, obstacles) and UI controls (HUD, FIRE button, joystick) for better fit on typical mobile viewports, and adjust hitboxes to match the new visual sizes.
+- Adjust bullet spawn position so bullets originate at (or very near) the player jet nose and align with the jet’s facing angle.
+- Update level obstacle scaling so each level targets 5 * level obstacles (e.g., 5, 10, 15, ...), and ensure any level progress/target UI reflects the new per-level obstacle target.
+- Replace/update the player jet visual to a more jet-like silhouette (sleek fuselage, wings, pointed nose) while keeping centering and rotation behavior consistent.
 
-**User-visible outcome:** Bullets shoot straight from the jet’s nose in the correct direction, obstacles look like glowing orange/red hexagons, and the game feels less crowded and more comfortable to play on mobile without UI overlap or clipping.
+**User-visible outcome:** Bullets appear to fire directly from the jet, each new level starts with a higher obstacle count in multiples of 5, and the player character looks like a jet plane rather than a “bud.”

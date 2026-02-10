@@ -1,172 +1,320 @@
-import { Zap, RotateCcw } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import VirtualJoystick from './VirtualJoystick';
+import { Button } from '@/components/ui/button';
+import { Play, Pause } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { formatTime } from '../utils/levelTimer';
 
 interface GameOverlayProps {
-  gameState: 'idle' | 'playing' | 'exploding' | 'gameover' | 'paused';
+  gameState: 'idle' | 'playing' | 'exploding' | 'gameover' | 'paused' | 'levelcomplete';
+  score: number;
+  level: number;
+  destroyed: number;
+  target: number;
+  bossActive: boolean;
+  bossHits: number;
+  bossMaxHits: number;
+  timeRemaining: number;
   onStart: () => void;
   onPause: () => void;
   onResume: () => void;
-  onRestart: () => void;
-  onFire: () => void;
+  onNextLevel: () => void;
   onJoystickMove: (vector: { x: number; y: number; magnitude: number }) => void;
   onJoystickNeutral: () => void;
-  bulletCount: number;
+  onFireStart: () => void;
+  onFireEnd: () => void;
 }
 
 export default function GameOverlay({
   gameState,
+  score,
+  level,
+  destroyed,
+  target,
+  bossActive,
+  bossHits,
+  bossMaxHits,
+  timeRemaining,
   onStart,
   onPause,
   onResume,
-  onRestart,
-  onFire,
+  onNextLevel,
   onJoystickMove,
   onJoystickNeutral,
-  bulletCount,
+  onFireStart,
+  onFireEnd,
 }: GameOverlayProps) {
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const isFiringRef = useRef(false);
+
+  // Handle pointer capture for continuous firing
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+
+    const handlePointerDown = (e: PointerEvent) => {
+      if (gameState !== 'playing') return;
+      
+      // Check if click is on fire button area (right side of screen on mobile, or anywhere on desktop)
+      const rect = overlay.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const isRightSide = x > rect.width / 2;
+      
+      // On mobile (touch), only fire on right side; on desktop (mouse), fire anywhere
+      if (e.pointerType === 'touch' && !isRightSide) return;
+      
+      if (!isFiringRef.current) {
+        isFiringRef.current = true;
+        onFireStart();
+        overlay.setPointerCapture(e.pointerId);
+      }
+    };
+
+    const handlePointerUp = (e: PointerEvent) => {
+      if (isFiringRef.current) {
+        isFiringRef.current = false;
+        onFireEnd();
+        if (overlay.hasPointerCapture(e.pointerId)) {
+          overlay.releasePointerCapture(e.pointerId);
+        }
+      }
+    };
+
+    const handlePointerCancel = (e: PointerEvent) => {
+      if (isFiringRef.current) {
+        isFiringRef.current = false;
+        onFireEnd();
+        if (overlay.hasPointerCapture(e.pointerId)) {
+          overlay.releasePointerCapture(e.pointerId);
+        }
+      }
+    };
+
+    overlay.addEventListener('pointerdown', handlePointerDown);
+    overlay.addEventListener('pointerup', handlePointerUp);
+    overlay.addEventListener('pointercancel', handlePointerCancel);
+
+    return () => {
+      overlay.removeEventListener('pointerdown', handlePointerDown);
+      overlay.removeEventListener('pointerup', handlePointerUp);
+      overlay.removeEventListener('pointercancel', handlePointerCancel);
+    };
+  }, [gameState, onFireStart, onFireEnd]);
+
+  // Stop firing when game state changes
+  useEffect(() => {
+    if (gameState !== 'playing' && isFiringRef.current) {
+      isFiringRef.current = false;
+      onFireEnd();
+    }
+  }, [gameState, onFireEnd]);
+
+  // Calculate progress percentage
+  const progressPercent = target > 0 ? Math.min((destroyed / target) * 100, 100) : 0;
+  const bossProgressPercent = bossMaxHits > 0 ? Math.min((bossHits / bossMaxHits) * 100, 100) : 0;
+
+  // Determine if timer is low (less than 10 seconds)
+  const isTimerLow = timeRemaining < 10;
+
   return (
-    <>
-      {/* Start Screen */}
-      {gameState === 'idle' && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-background via-background/98 to-background/95 backdrop-blur-md z-50">
-          <div className="text-center space-y-6 sm:space-y-10 px-4 sm:px-6 max-w-2xl">
-            <div className="space-y-3 sm:space-y-4">
-              <h1 className="text-5xl sm:text-7xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-br from-game-primary via-game-accent to-game-primary-hover tracking-tighter drop-shadow-[0_0_30px_rgba(255,100,0,0.5)] animate-pulse">
-                JET RUSH
-              </h1>
-              <div className="h-1 w-32 sm:w-48 mx-auto bg-gradient-to-r from-transparent via-game-primary to-transparent rounded-full" />
+    <div ref={overlayRef} className="absolute inset-0 pointer-events-none">
+      {/* HUD - Top bar with score, level, and timer */}
+      {(gameState === 'playing' || gameState === 'paused') && (
+        <div className="absolute top-2 left-2 right-2 sm:top-4 sm:left-4 sm:right-4 flex items-start justify-between gap-2 sm:gap-4 pointer-events-auto z-10">
+          {/* Left side - Score and Level */}
+          <div className="flex flex-col gap-1 sm:gap-2 bg-game-field/90 backdrop-blur-sm border-2 border-game-border rounded-lg px-3 py-2 sm:px-4 sm:py-2 shadow-lg">
+            <div className="text-xs sm:text-sm font-bold text-game-text-secondary">SCORE</div>
+            <div className="text-lg sm:text-2xl md:text-3xl font-bold text-game-primary tabular-nums">
+              {score.toString().padStart(6, '0')}
             </div>
-            
-            <div className="space-y-2 sm:space-y-3">
-              <p className="text-lg sm:text-2xl md:text-3xl text-foreground font-bold tracking-wide">
-                USE JOYSTICK TO MOVE
-              </p>
-              <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-medium">
-                Tap FIRE to shoot
-              </p>
+            <div className="text-xs sm:text-sm font-bold text-game-text-secondary mt-1">
+              LEVEL {level}
             </div>
-            
-            <button
-              onClick={onStart}
-              className="group relative px-10 sm:px-14 py-5 sm:py-7 bg-gradient-to-br from-game-primary to-game-primary-hover hover:from-game-primary-hover hover:to-game-primary text-white text-xl sm:text-2xl md:text-3xl font-black rounded-2xl shadow-[0_8px_32px_rgba(255,100,0,0.5)] hover:shadow-[0_12px_48px_rgba(255,100,0,0.7)] transition-all duration-300 active:scale-95 border-2 border-game-accent/30"
+          </div>
+
+          {/* Center - Timer */}
+          <div className="flex flex-col items-center gap-1 bg-game-field/90 backdrop-blur-sm border-2 border-game-border rounded-lg px-3 py-2 sm:px-4 sm:py-2 shadow-lg">
+            <div className="text-xs sm:text-sm font-bold text-game-text-secondary">TIME</div>
+            <div
+              className={`text-xl sm:text-3xl md:text-4xl font-bold tabular-nums transition-colors ${
+                isTimerLow ? 'text-red-500 animate-pulse' : 'text-game-primary'
+              }`}
             >
-              <span className="relative z-10 flex items-center gap-2 sm:gap-3">
-                <Zap className="w-6 h-6 sm:w-8 sm:h-8" fill="currentColor" />
-                START GAME
+              {formatTime(timeRemaining)}
+            </div>
+          </div>
+
+          {/* Right side - Pause button */}
+          <Button
+            onClick={onPause}
+            variant="outline"
+            size="icon"
+            className="bg-game-field/90 backdrop-blur-sm border-2 border-game-border hover:bg-game-primary/20 h-12 w-12 sm:h-14 sm:w-14"
+          >
+            <Pause className="h-5 w-5 sm:h-6 sm:w-6" />
+          </Button>
+        </div>
+      )}
+
+      {/* Progress bar - Below HUD */}
+      {(gameState === 'playing' || gameState === 'paused') && !bossActive && (
+        <div className="absolute top-20 sm:top-24 left-2 right-2 sm:left-4 sm:right-4 pointer-events-auto z-10">
+          <div className="bg-game-field/90 backdrop-blur-sm border-2 border-game-border rounded-lg px-3 py-2 sm:px-4 sm:py-3 shadow-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs sm:text-sm font-bold text-game-text-secondary">
+                OBSTACLES DESTROYED
               </span>
-              <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Game Over Screen */}
-      {gameState === 'gameover' && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-background via-background/98 to-background/95 backdrop-blur-md z-50">
-          <div className="text-center space-y-6 sm:space-y-10 px-4 sm:px-6 max-w-2xl">
-            <div className="space-y-3 sm:space-y-4">
-              <h2 className="text-4xl sm:text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-br from-red-600 via-orange-500 to-red-600 tracking-tighter drop-shadow-[0_0_30px_rgba(220,38,38,0.6)] animate-pulse">
-                GAME OVER
-              </h2>
-              <div className="h-1 w-28 sm:w-40 mx-auto bg-gradient-to-r from-transparent via-red-500 to-transparent rounded-full" />
-            </div>
-            
-            <button
-              onClick={onRestart}
-              className="group relative px-10 sm:px-12 py-5 sm:py-6 bg-gradient-to-br from-game-primary to-game-primary-hover hover:from-game-primary-hover hover:to-game-primary text-white text-lg sm:text-xl md:text-2xl font-black rounded-xl shadow-[0_6px_24px_rgba(255,100,0,0.4)] hover:shadow-[0_8px_32px_rgba(255,100,0,0.6)] transition-all duration-300 active:scale-95 border-2 border-game-accent/30"
-            >
-              <span className="relative z-10 flex items-center gap-2 sm:gap-3">
-                <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />
-                RESTART
+              <span className="text-xs sm:text-sm font-bold text-game-primary tabular-nums">
+                {destroyed} / {target}
               </span>
-              <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-            </button>
+            </div>
+            <Progress value={progressPercent} className="h-2 sm:h-3" />
           </div>
         </div>
       )}
 
-      {/* Pause Screen */}
-      {gameState === 'paused' && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-background via-background/98 to-background/95 backdrop-blur-md z-50">
-          <div className="text-center space-y-6 sm:space-y-10 px-4 sm:px-6 max-w-2xl">
-            <div className="space-y-3 sm:space-y-4">
-              <h2 className="text-4xl sm:text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-br from-game-primary via-game-accent to-game-primary-hover tracking-tighter drop-shadow-[0_0_30px_rgba(255,100,0,0.5)]">
-                PAUSED
-              </h2>
-              <div className="h-1 w-24 sm:w-32 mx-auto bg-gradient-to-r from-transparent via-game-primary to-transparent rounded-full" />
+      {/* Boss health bar */}
+      {(gameState === 'playing' || gameState === 'paused') && bossActive && (
+        <div className="absolute top-20 sm:top-24 left-2 right-2 sm:left-4 sm:right-4 pointer-events-auto z-10">
+          <div className="bg-game-field/90 backdrop-blur-sm border-2 border-red-500 rounded-lg px-3 py-2 sm:px-4 sm:py-3 shadow-lg shadow-red-500/50">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs sm:text-sm font-bold text-red-400 animate-pulse">
+                ⚠️ BOSS ENCOUNTER
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-red-400 tabular-nums">
+                {Math.max(0, bossMaxHits - bossHits)} HITS REMAINING
+              </span>
             </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-              <button
-                onClick={onResume}
-                className="group relative px-10 sm:px-12 py-5 sm:py-6 bg-gradient-to-br from-game-primary to-game-primary-hover hover:from-game-primary-hover hover:to-game-primary text-white text-lg sm:text-xl md:text-2xl font-black rounded-xl shadow-[0_6px_24px_rgba(255,100,0,0.4)] hover:shadow-[0_8px_32px_rgba(255,100,0,0.6)] transition-all duration-300 active:scale-95 border-2 border-game-accent/30"
-              >
-                <span className="relative z-10">RESUME</span>
-                <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              </button>
-              
-              <button
-                onClick={onRestart}
-                className="group relative px-10 sm:px-12 py-5 sm:py-6 bg-gradient-to-br from-game-secondary to-game-secondary-hover hover:from-game-secondary-hover hover:to-game-secondary text-white text-lg sm:text-xl md:text-2xl font-black rounded-xl shadow-[0_6px_24px_rgba(0,0,0,0.3)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.4)] transition-all duration-300 active:scale-95 border-2 border-game-border/30"
-              >
-                <span className="relative z-10 flex items-center gap-2">
-                  <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
-                  RESTART
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-t from-white/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              </button>
-            </div>
+            <Progress value={bossProgressPercent} className="h-3 sm:h-4 [&>div]:bg-red-500" />
           </div>
         </div>
       )}
 
-      {/* In-Game HUD */}
+      {/* Virtual joystick - Bottom left */}
+      {(gameState === 'playing' || gameState === 'paused') && (
+        <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 md:bottom-8 md:left-8 pointer-events-auto z-20">
+          <VirtualJoystick onMove={onJoystickMove} onNeutral={onJoystickNeutral} />
+        </div>
+      )}
+
+      {/* Fire instruction - Bottom right (mobile only) */}
       {gameState === 'playing' && (
-        <>
-          {/* Top HUD */}
-          <div className="absolute top-2 sm:top-4 left-2 sm:left-4 right-2 sm:right-4 flex justify-between items-start z-40 pointer-events-none">
-            <div className="bg-background/80 backdrop-blur-sm px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl border-2 border-game-border/50 shadow-game">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Zap className="w-4 h-4 sm:w-6 sm:h-6 text-game-primary" fill="currentColor" />
-                <span className="text-lg sm:text-2xl font-black text-foreground tracking-wider">
-                  {bulletCount}
-                </span>
-              </div>
+        <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 md:hidden pointer-events-none z-20">
+          <div className="bg-game-field/90 backdrop-blur-sm border-2 border-game-border rounded-lg px-4 py-3 shadow-lg">
+            <div className="text-sm font-bold text-game-primary text-center">
+              TAP RIGHT SIDE
+              <br />
+              TO FIRE
             </div>
-            
-            <button
-              onClick={onPause}
-              className="pointer-events-auto bg-background/80 backdrop-blur-sm p-2.5 sm:p-4 rounded-lg sm:rounded-xl border-2 border-game-border/50 shadow-game hover:bg-background/90 transition-colors active:scale-95"
-            >
-              <div className="w-4 h-4 sm:w-6 sm:h-6 flex gap-1 sm:gap-1.5 items-center justify-center">
-                <div className="w-1 sm:w-1.5 h-full bg-game-primary rounded-full" />
-                <div className="w-1 sm:w-1.5 h-full bg-game-primary rounded-full" />
-              </div>
-            </button>
           </div>
-
-          {/* Virtual Controls */}
-          <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 z-40">
-            <VirtualJoystick
-              onMove={onJoystickMove}
-              onNeutral={onJoystickNeutral}
-            />
-          </div>
-
-          <div className="absolute bottom-4 sm:bottom-8 right-4 sm:right-8 z-40">
-            <button
-              onPointerDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onFire();
-              }}
-              className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full bg-gradient-to-br from-game-primary to-game-primary-hover border-2 sm:border-4 border-game-accent/50 shadow-[0_0_20px_rgba(255,100,0,0.5)] hover:shadow-[0_0_30px_rgba(255,100,0,0.7)] active:scale-95 transition-all flex items-center justify-center group"
-            >
-              <Zap className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-white group-active:scale-110 transition-transform" fill="currentColor" />
-            </button>
-          </div>
-        </>
+        </div>
       )}
-    </>
+
+      {/* Desktop fire instruction */}
+      {gameState === 'playing' && (
+        <div className="hidden md:block absolute bottom-8 right-8 pointer-events-none z-20">
+          <div className="bg-game-field/90 backdrop-blur-sm border-2 border-game-border rounded-lg px-4 py-3 shadow-lg">
+            <div className="text-sm font-bold text-game-primary text-center">
+              CLICK ANYWHERE
+              <br />
+              TO FIRE
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Start screen */}
+      {gameState === 'idle' && (
+        <div className="absolute inset-0 flex items-center justify-center bg-game-field/95 backdrop-blur-sm pointer-events-auto">
+          <div className="text-center space-y-4 sm:space-y-6 px-4">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-game-primary drop-shadow-[0_0_20px_rgba(255,120,0,0.8)]">
+              JET RUSH
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl text-game-text-secondary max-w-md mx-auto">
+              Navigate with the joystick, fire to destroy obstacles, and defeat the boss to advance!
+            </p>
+            <Button
+              onClick={onStart}
+              size="lg"
+              className="bg-game-primary hover:bg-game-primary/90 text-white font-bold text-lg sm:text-xl px-8 py-6 shadow-lg shadow-game-primary/50"
+            >
+              <Play className="mr-2 h-6 w-6" />
+              START GAME
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Paused screen */}
+      {gameState === 'paused' && (
+        <div className="absolute inset-0 flex items-center justify-center bg-game-field/95 backdrop-blur-sm pointer-events-auto">
+          <div className="text-center space-y-4 sm:space-y-6 px-4">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-game-primary">PAUSED</h2>
+            <Button
+              onClick={onResume}
+              size="lg"
+              className="bg-game-primary hover:bg-game-primary/90 text-white font-bold text-lg sm:text-xl px-8 py-6 shadow-lg shadow-game-primary/50"
+            >
+              <Play className="mr-2 h-6 w-6" />
+              RESUME
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Game over screen */}
+      {gameState === 'gameover' && (
+        <div className="absolute inset-0 flex items-center justify-center bg-game-field/95 backdrop-blur-sm pointer-events-auto">
+          <div className="text-center space-y-4 sm:space-y-6 px-4">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-red-500">GAME OVER</h2>
+            <div className="space-y-2">
+              <p className="text-xl sm:text-2xl md:text-3xl text-game-text-secondary">
+                Final Score:{' '}
+                <span className="text-game-primary font-bold">{score.toString().padStart(6, '0')}</span>
+              </p>
+              <p className="text-lg sm:text-xl md:text-2xl text-game-text-secondary">
+                Level Reached: <span className="text-game-primary font-bold">{level}</span>
+              </p>
+            </div>
+            <Button
+              onClick={onStart}
+              size="lg"
+              className="bg-game-primary hover:bg-game-primary/90 text-white font-bold text-lg sm:text-xl px-8 py-6 shadow-lg shadow-game-primary/50"
+            >
+              <Play className="mr-2 h-6 w-6" />
+              PLAY AGAIN
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Level complete screen */}
+      {gameState === 'levelcomplete' && (
+        <div className="absolute inset-0 flex items-center justify-center bg-game-field/95 backdrop-blur-sm pointer-events-auto">
+          <div className="text-center space-y-4 sm:space-y-6 px-4">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-green-500">LEVEL COMPLETE!</h2>
+            <div className="space-y-2">
+              <p className="text-xl sm:text-2xl md:text-3xl text-game-text-secondary">
+                Score: <span className="text-game-primary font-bold">{score.toString().padStart(6, '0')}</span>
+              </p>
+              <p className="text-lg sm:text-xl md:text-2xl text-game-text-secondary">
+                Obstacles Destroyed:{' '}
+                <span className="text-game-primary font-bold">
+                  {destroyed} / {target}
+                </span>
+              </p>
+            </div>
+            <Button
+              onClick={onNextLevel}
+              size="lg"
+              className="bg-game-primary hover:bg-game-primary/90 text-white font-bold text-lg sm:text-xl px-8 py-6 shadow-lg shadow-game-primary/50"
+            >
+              <Play className="mr-2 h-6 w-6" />
+              NEXT LEVEL
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 interface BulletProps {
   position: { x: number; y: number };
-  rotation?: number; // Rotation in degrees to align with travel direction
+  rotation?: number; // Rotation in degrees (0=up, matching PlayerJet convention)
 }
 
 export default function Bullet({ position, rotation = 0 }: BulletProps) {
