@@ -1,8 +1,26 @@
+<!DOCTYPE html>
 <html lang='en'>
     <head>
         <meta charset='UTF-8' />
-        <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-        <title>Mobile-friendly jet plane border game (Android-like experience in browser)</title>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0, viewport-fit=cover' />
+        <title>Jet Defender</title>
+        
+        <!-- PWA Manifest -->
+        <link rel='manifest' href='/manifest.webmanifest' />
+        
+        <!-- Theme colors -->
+        <meta name='theme-color' content='#0a0a0a' media='(prefers-color-scheme: dark)' />
+        <meta name='theme-color' content='#ffffff' media='(prefers-color-scheme: light)' />
+        
+        <!-- Apple iOS PWA support -->
+        <meta name='apple-mobile-web-app-capable' content='yes' />
+        <meta name='apple-mobile-web-app-status-bar-style' content='black-translucent' />
+        <meta name='apple-mobile-web-app-title' content='Jet Defender' />
+        <link rel='apple-touch-icon' href='/assets/generated/pwa-icon.dim_512x512.png' />
+        
+        <!-- Microsoft Tiles -->
+        <meta name='msapplication-TileColor' content='#0a0a0a' />
+        <meta name='msapplication-TileImage' content='/assets/generated/pwa-icon.dim_512x512.png' />
     </head>
     <body>
         <div id='root'></div>

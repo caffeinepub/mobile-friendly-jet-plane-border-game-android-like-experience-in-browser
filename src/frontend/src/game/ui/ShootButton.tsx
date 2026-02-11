@@ -44,9 +44,22 @@ export default function ShootButton({ onFireStart, onFireEnd, disabled = false }
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerCancel}
       disabled={disabled}
-      className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-game-secondary hover:bg-game-secondary-hover border-2 border-game-border shadow-game-button hover:shadow-game-button-hover active:scale-95 transition-all touch-none select-none disabled:opacity-50 disabled:cursor-not-allowed"
+      className="rounded-full bg-game-secondary hover:bg-game-secondary-hover border-2 border-game-border shadow-game-button hover:shadow-game-button-hover active:scale-95 transition-all touch-none select-none disabled:opacity-50 disabled:cursor-not-allowed"
+      style={{
+        width: 'var(--compact-control-size)',
+        height: 'var(--compact-control-size)',
+        minWidth: '44px',
+        minHeight: '44px',
+      }}
     >
-      <Zap className="w-6 h-6 sm:w-7 sm:h-7 md:w-9 md:h-9 text-game-accent" fill="currentColor" />
+      <Zap 
+        className="text-game-accent" 
+        fill="currentColor"
+        style={{
+          width: 'var(--compact-control-icon-size)',
+          height: 'var(--compact-control-icon-size)',
+        }}
+      />
     </Button>
   );
 }

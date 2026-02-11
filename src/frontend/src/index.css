@@ -36,6 +36,30 @@
         --game-border: 0.55 0.20 35;
         --game-field: 0.15 0.03 30;
         --game-text-secondary: 1 0 0;
+        
+        /* Safe area insets for mobile devices with notches/home indicators */
+        --safe-area-inset-top: env(safe-area-inset-top, 0px);
+        --safe-area-inset-right: env(safe-area-inset-right, 0px);
+        --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-area-inset-left: env(safe-area-inset-left, 0px);
+        
+        /* Mobile-compact scaling system - default (desktop/tablet) */
+        --compact-hud-padding-x: 0.75rem;
+        --compact-hud-padding-y: 0.375rem;
+        --compact-hud-gap: 0.75rem;
+        --compact-hud-font-size: 0.875rem;
+        --compact-hud-font-size-small: 0.75rem;
+        --compact-progress-height: 0.5rem;
+        --compact-control-size: 3.5rem;
+        --compact-control-icon-size: 1.5rem;
+        --compact-control-inset: 0.5rem;
+        --compact-overlay-title: 2rem;
+        --compact-overlay-text: 1rem;
+        --compact-overlay-spacing: 1rem;
+        --compact-overlay-padding: 1rem;
+        --compact-border-width: 3px;
+        --compact-corner-size: 1rem;
+        --compact-grid-size: 30px;
     }
 
     .dark {
@@ -70,6 +94,28 @@
         --game-field: 0.08 0.04 30;
         --game-text-secondary: 1 0 0;
     }
+    
+    /* Mobile-compact mode for small landscape screens */
+    @media (max-width: 640px) and (orientation: landscape) {
+        :root, .dark {
+            --compact-hud-padding-x: 0.375rem;
+            --compact-hud-padding-y: 0.25rem;
+            --compact-hud-gap: 0.5rem;
+            --compact-hud-font-size: 0.625rem;
+            --compact-hud-font-size-small: 0.5625rem;
+            --compact-progress-height: 0.375rem;
+            --compact-control-size: 2.75rem;
+            --compact-control-icon-size: 1.125rem;
+            --compact-control-inset: 0.375rem;
+            --compact-overlay-title: 1.25rem;
+            --compact-overlay-text: 0.75rem;
+            --compact-overlay-spacing: 0.5rem;
+            --compact-overlay-padding: 0.75rem;
+            --compact-border-width: 2px;
+            --compact-corner-size: 0.625rem;
+            --compact-grid-size: 20px;
+        }
+    }
 
     * {
         @apply border-border;
@@ -97,6 +143,19 @@
     
     .shadow-game-button-hover {
         box-shadow: 0 6px 20px oklch(0.58 0.20 35 / 0.5);
+    }
+    
+    /* Safe area utilities for virtual controls - compact mode aware */
+    .safe-bottom {
+        bottom: calc(var(--compact-control-inset) + var(--safe-area-inset-bottom));
+    }
+    
+    .safe-left {
+        left: calc(var(--compact-control-inset) + var(--safe-area-inset-left));
+    }
+    
+    .safe-right {
+        right: calc(var(--compact-control-inset) + var(--safe-area-inset-right));
     }
 }
 

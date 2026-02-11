@@ -13,7 +13,7 @@ export default function VirtualJoystick({ onMove, onNeutral, resetToken }: Virtu
   const baseRef = useRef<HTMLDivElement>(null);
   const activePointerRef = useRef<number | null>(null);
 
-  const maxDistance = 32; // Reduced from 40
+  const maxDistance = 28; // Reduced for compact mode
 
   useEffect(() => {
     if (resetToken !== undefined) {
@@ -80,16 +80,24 @@ export default function VirtualJoystick({ onMove, onNeutral, resetToken }: Virtu
   return (
     <div
       ref={baseRef}
-      className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-game-field/60 backdrop-blur-sm border-2 border-game-border shadow-game touch-none select-none"
+      className="relative rounded-full bg-game-field/60 backdrop-blur-sm border-2 border-game-border shadow-game touch-none select-none"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
+      style={{
+        width: 'var(--compact-control-size)',
+        height: 'var(--compact-control-size)',
+        minWidth: '44px',
+        minHeight: '44px',
+      }}
     >
       {/* Knob */}
       <div
-        className="absolute top-1/2 left-1/2 w-6 h-6 sm:w-7 sm:h-7 md:w-9 md:h-9 rounded-full bg-game-primary border-2 border-game-accent shadow-lg pointer-events-none"
+        className="absolute top-1/2 left-1/2 rounded-full bg-game-primary border-2 border-game-accent shadow-lg pointer-events-none"
         style={{
+          width: 'calc(var(--compact-control-icon-size) * 1.25)',
+          height: 'calc(var(--compact-control-icon-size) * 1.25)',
           transform: `translate(calc(-50% + ${knobPosition.x}px), calc(-50% + ${knobPosition.y}px))`,
           transition: activePointerRef.current === null ? 'transform 0.1s ease-out' : 'none',
         }}

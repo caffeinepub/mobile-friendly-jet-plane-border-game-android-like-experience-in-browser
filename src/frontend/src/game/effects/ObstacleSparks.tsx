@@ -1,53 +1,49 @@
+import { Z_INDEX } from '../ui/zIndex';
+
 interface ObstacleSparksProps {
   isBoss?: boolean;
 }
 
 export default function ObstacleSparks({ isBoss = false }: ObstacleSparksProps) {
-  // Generate 6-8 spark streaks around the obstacle
-  const sparkCount = isBoss ? 8 : 6;
-  const sparks = Array.from({ length: sparkCount }, (_, i) => {
-    const angle = (360 / sparkCount) * i;
-    return { id: i, angle };
-  });
-
-  const sparkColor = isBoss 
-    ? 'oklch(0.75 0.26 15)' // Red for boss
-    : 'oklch(0.75 0.26 35)'; // Orange for regular
+  // Generate spark positions (deterministic, no per-render randomness)
+  const sparkPositions = [
+    { angle: 0, distance: 100 },
+    { angle: 60, distance: 95 },
+    { angle: 120, distance: 105 },
+    { angle: 180, distance: 100 },
+    { angle: 240, distance: 95 },
+    { angle: 300, distance: 105 },
+  ];
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
-      {sparks.map((spark) => (
-        <div
-          key={spark.id}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-          style={{
-            transform: `translate(-50%, -50%) rotate(${spark.angle}deg)`,
-          }}
-        >
-          {/* Spark streak */}
+    <div 
+      className="absolute inset-0 pointer-events-none"
+      style={{ zIndex: Z_INDEX.VFX }}
+    >
+      {sparkPositions.map((spark, i) => {
+        const angleRad = (spark.angle * Math.PI) / 180;
+        const x = 50 + Math.cos(angleRad) * spark.distance;
+        const y = 50 + Math.sin(angleRad) * spark.distance;
+        
+        return (
           <div
-            className={isBoss ? 'obstacle-spark-boss' : 'obstacle-spark'}
+            key={i}
+            className={`absolute w-1 h-2 sm:w-1.5 sm:h-3 rounded-full ${
+              isBoss ? 'bg-red-500' : 'bg-game-accent'
+            } animate-sparkFlicker`}
             style={{
-              width: '2px',
-              height: isBoss ? '16px' : '12px',
-              background: `linear-gradient(to bottom, ${sparkColor}, transparent)`,
-              transformOrigin: 'top center',
-              animation: `sparkFlicker ${1.5 + Math.random() * 0.5}s ease-in-out infinite`,
-              animationDelay: `${spark.id * 0.15}s`,
+              left: `${x}%`,
+              top: `${y}%`,
+              transform: 'translate(-50%, -50%)',
+              animationDelay: `${i * 0.1}s`,
             }}
           />
-        </div>
-      ))}
+        );
+      })}
       
       {/* Additional glow pulse for boss */}
       {isBoss && (
-        <div
-          className="absolute inset-0 rounded-full animate-pulse"
-          style={{
-            background: `radial-gradient(circle, ${sparkColor}40 0%, transparent 70%)`,
-            animation: 'sparkPulse 1.2s ease-in-out infinite',
-          }}
-        />
+        <div className="absolute inset-0 rounded-full bg-red-500/20 animate-sparkPulse" />
       )}
     </div>
   );

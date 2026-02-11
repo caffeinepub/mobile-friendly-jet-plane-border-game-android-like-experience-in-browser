@@ -1,3 +1,5 @@
+import { Z_INDEX } from '../ui/zIndex';
+
 interface SparkBurstProps {
   x: number; // Position in percent (0-100)
   y: number; // Position in percent (0-100)
@@ -32,11 +34,12 @@ export default function SparkBurst({ x, y, variant = 'normal', onComplete }: Spa
 
   return (
     <div
-      className="absolute pointer-events-none z-50"
+      className="absolute pointer-events-none"
       style={{
         left: `${x}%`,
         top: `${y}%`,
         transform: 'translate(-50%, -50%)',
+        zIndex: Z_INDEX.VFX, // Use shared VFX z-index (below HUD and overlays)
       }}
     >
       {/* Spark streaks */}

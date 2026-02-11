@@ -14,10 +14,10 @@ interface MovementOutput {
   speedFactor: number;
 }
 
-// Configuration constants - tuned for slower top speed and finer control
+// Configuration constants - tuned for much finer control and reduced sensitivity
 const DEADZONE = 0.15; // Ignore input below 15% to prevent jitter
-const SPEED_CURVE_EXPONENT = 2.2; // Increased from 1.8 for more gradual acceleration
-const MAX_SPEED_MULTIPLIER = 0.35; // Reduced from 0.5 for slower top speed
+const SPEED_CURVE_EXPONENT = 2.8; // Increased from 2.2 for much more gradual acceleration
+const MAX_SPEED_MULTIPLIER = 0.25; // Reduced from 0.35 for slower top speed
 
 /**
  * Convert raw joystick input to normalized direction and curved speed factor.

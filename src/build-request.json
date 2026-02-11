@@ -1,92 +1,103 @@
 {
   "kind": "build_request",
-  "title": "Add spark particle bursts on bullet impacts, obstacle/boss deaths, and player collisions",
+  "title": "Add Progressive Web App (PWA) install + offline support for the mobile game",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-3",
-      "text": "Add a dedicated spark-like particle burst visual effect that can be spawned at an (x%, y%) position, with tunable intensity (e.g., normal vs boss/large), and that self-terminates after a short duration without requiring per-frame React state updates.",
+      "id": "REQ-1",
+      "text": "Add Progressive Web App metadata so the game is installable on Android (Add to Home Screen) and iOS (Add to Home Screen), launches full-screen, and has a proper app name/icon.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-4",
+          "msg-6"
         ],
         "quotes": [
-          "when bullets hit to obstacles or bullets hit to boss obstacles when it is died at the time of died it should get spark like particles. also do the same with player. when player collide with obstacles or borders"
+          "How to use this application for mobile device as offline. not online like pasting the URL in browser from their need to play. I need to use like a mobile gaming application",
+          "yes please"
         ]
       },
       "acceptanceCriteria": [
-        "A reusable spark-burst effect component exists under the game effects directory and accepts at least: position (x/y percent) and a variant/intensity flag.",
-        "The effect renders multiple short-lived spark streaks/particles with a visually 'spark' feel (bright core, quick fade, small spread).",
-        "The effect automatically disappears after its configured lifetime and does not leak timers or intervals."
+        "`frontend/index.html` includes a valid manifest link and PWA-related meta tags for standalone/fullscreen launch (including Apple-specific tags).",
+        "A web app manifest file exists under `frontend/public/` and includes name, short_name, start_url, display=standalone (or fullscreen), theme_color/background_color, and icon entries.",
+        "When opened on a phone and installed to home screen, launching from the home screen opens without the browser URL bar (standalone app-like mode)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Implement a service worker that precaches the built frontend assets and enables offline play after the first successful load.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4",
+          "msg-6"
+        ],
+        "quotes": [
+          "How to use this application for mobile device as offline. not online like pasting the URL in browser from their need to play. I need to use like a mobile gaming application",
+          "yes please"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A service worker file exists under `frontend/public/` (or another appropriate frontend-served location) and installs/activates successfully.",
+        "After visiting the app once while online, the game can be reopened and played with the device in airplane mode (offline).",
+        "The service worker update flow does not permanently trap users on an old cached version (i.e., it fetches updated assets on new deployments and refreshes cache appropriately)."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Register the service worker from a non-immutable frontend entry point (do not modify `frontend/src/main.tsx`) so that it runs for all users.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "yes please"
+        ]
+      },
+      "acceptanceCriteria": [
+        "No changes are made to `frontend/src/main.tsx`.",
+        "The service worker is registered from an allowed file (e.g., `frontend/src/App.tsx` or another new module imported by it).",
+        "Service worker registration is guarded to run only in supported environments (no runtime errors in browsers without service worker support)."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "When a bullet collides with an obstacle, spawn the spark-burst effect at the collision/impact position in addition to any existing hit feedback, and ensure it triggers once per collision event.",
+      "text": "Add a small in-app install affordance (non-blocking) that helps users install the game to their home screen when the browser indicates it is installable.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-3"
+          "msg-4",
+          "msg-6"
         ],
         "quotes": [
-          "when bullets hit to obstacles or bullets hit to boss obstacles when it is died at the time of died it should get spark like particles."
+          "I need to use like a mobile gaming application",
+          "yes please"
         ]
       },
       "acceptanceCriteria": [
-        "On bullet→obstacle collision, a visible spark burst appears at the obstacle hit location.",
-        "The spark burst does not continuously retrigger while entities overlap; it is emitted once per registered hit event.",
-        "Existing bullet hit behavior (e.g., bullet removal, scoring, existing hit flash/explosion) continues to work."
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "When a boss obstacle dies (i.e., when it is removed due to taking the final hit), spawn a higher-intensity spark-burst effect at the boss position at the time of death.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-3"
-        ],
-        "quotes": [
-          "...bullets hit to boss obstacles when it is died at the time of died it should get spark like particles."
-        ]
-      },
-      "acceptanceCriteria": [
-        "When the boss obstacle is destroyed/removed, a distinct, stronger spark burst is shown at the boss death position (e.g., more particles, longer streaks, brighter glow).",
-        "The boss-death spark burst triggers only once per boss death event."
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "When the player collides with an obstacle or the playfield border (causing player death/game over), spawn a spark-burst effect at the collision position/time, in addition to the existing player explosion sequence.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-3"
-        ],
-        "quotes": [
-          "also do the same with player. when player collide with obstacles or borders"
-        ]
-      },
-      "acceptanceCriteria": [
-        "On player death caused by obstacle collision, a visible spark burst appears at the player position (or contact point) at the moment death is triggered.",
-        "On player death caused by border collision, a visible spark burst appears at the player position (or border contact point) at the moment death is triggered.",
-        "The existing player explosion effect still plays and the game over flow remains unchanged."
+        "On supported browsers (e.g., Android Chrome), the app shows a minimal \"Install\" UI only when install is available; otherwise it stays hidden.",
+        "Triggering install uses the browser install prompt mechanism when available and does not interrupt gameplay when dismissed.",
+        "User-facing text is in English."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/components/ui (read-only).",
-    "Do not modify immutable hook files listed in SYSTEM_CONTEXT (compose around them if needed).",
-    "Backend canister logic should remain unchanged (this is a client-side visual effect request)."
+    "Do not edit files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or anything inside `frontend/src/components/ui` (immutable paths).",
+    "Keep all backend logic in the single Motoko actor (`backend/main.mo`); no additional backend services.",
+    "Do not introduce third-party authentication providers; Internet Identity remains the only auth option (even if unused by the game)."
   ],
   "nonGoals": [
-    "Changing gameplay balance, collision rules, scoring, or spawn rates.",
-    "Adding audio effects.",
-    "Adding new backend persistence or networking features."
+    "Packaging as a native app (APK/IPA), publishing to Google Play/App Store, or adding native SDK integrations.",
+    "Adding push notifications or real-time networking features.",
+    "Changing gameplay mechanics (movement sensitivity, obstacle sizes, scoring) as part of this PWA/offline work."
   ],
   "imageRequirements": {
-    "required": [],
+    "required": [
+      "Square app icon illustration with a stylized jet/arcade motif (pwa-icon.dim_512x512.png)",
+      "Maskable-style square icon with safe padding for Android adaptive icons (pwa-icon-maskable.dim_512x512.png)",
+      "Small app icon variant (pwa-icon.dim_192x192.png)"
+    ],
     "edits": []
   }
 }

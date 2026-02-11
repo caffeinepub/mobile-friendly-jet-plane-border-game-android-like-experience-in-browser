@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T16:30:10.318Z",
+  "generatedAt": "2026-02-10T18:14:31.856Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,55 +11,61 @@
     "implemented": 4,
     "items": [
       {
-        "id": "REQ-3",
-        "summary": "Add a dedicated spark-like particle burst visual effect that can be spawned at an (x%, y%) position, with tunable intensity (e.g., normal vs boss/large), and that self-terminates after a short duration without requiring per-frame React state updates.",
+        "id": "REQ-1",
+        "summary": "Add Progressive Web App metadata so the game is installable on Android (Add to Home Screen) and iOS (Add to Home Screen), launches full-screen, and has a proper app name/icon.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/game/effects/SparkBurst.tsx",
-          "frontend/src/index.css"
+          "frontend/index.html",
+          "frontend/public/manifest.webmanifest",
+          "frontend/public/assets/generated/pwa-icon.dim_512x512.png",
+          "frontend/public/assets/generated/pwa-icon-maskable.dim_512x512.png",
+          "frontend/public/assets/generated/pwa-icon.dim_192x192.png"
         ],
         "matchedFiles": [
-          "frontend/src/game/effects/SparkBurst.tsx",
-          "frontend/src/index.css"
+          "frontend/index.html",
+          "frontend/public/manifest.webmanifest",
+          "frontend/public/assets/generated/pwa-icon.dim_512x512.png",
+          "frontend/public/assets/generated/pwa-icon-maskable.dim_512x512.png",
+          "frontend/public/assets/generated/pwa-icon.dim_192x192.png"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Implement a service worker that precaches the built frontend assets and enables offline play after the first successful load.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/public/sw.js"
+        ],
+        "matchedFiles": [
+          "frontend/public/sw.js"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Register the service worker from a non-immutable frontend entry point (do not modify `frontend/src/main.tsx`) so that it runs for all users.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pwa/registerServiceWorker.ts",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pwa/registerServiceWorker.ts",
+          "frontend/src/App.tsx"
         ]
       },
       {
         "id": "REQ-4",
-        "summary": "When a bullet collides with an obstacle, spawn the spark-burst effect at the collision/impact position in addition to any existing hit feedback, and ensure it triggers once per collision event.",
+        "summary": "Add a small in-app install affordance (non-blocking) that helps users install the game to their home screen when the browser indicates it is installable.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/effects/SparkBurst.tsx"
+          "frontend/src/pwa/useInstallPrompt.ts",
+          "frontend/src/pwa/InstallAffordance.tsx",
+          "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/effects/SparkBurst.tsx"
-        ]
-      },
-      {
-        "id": "REQ-5",
-        "summary": "When a boss obstacle dies (i.e., when it is removed due to taking the final hit), spawn a higher-intensity spark-burst effect at the boss position at the time of death.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/effects/SparkBurst.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/effects/SparkBurst.tsx"
-        ]
-      },
-      {
-        "id": "REQ-6",
-        "summary": "When the player collides with an obstacle or the playfield border (causing player death/game over), spawn a spark-burst effect at the collision position/time, in addition to the existing player explosion sequence.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/effects/SparkBurst.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/game/GameScreen.tsx",
-          "frontend/src/game/effects/SparkBurst.tsx"
+          "frontend/src/pwa/useInstallPrompt.ts",
+          "frontend/src/pwa/InstallAffordance.tsx",
+          "frontend/src/App.tsx"
         ]
       }
     ]
@@ -69,9 +75,16 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/game/GameScreen.tsx",
-    "frontend/src/game/effects/SparkBurst.tsx",
-    "frontend/src/index.css",
+    "frontend/index.html",
+    "frontend/public/assets/generated/pwa-icon-maskable.dim_512x512.png",
+    "frontend/public/assets/generated/pwa-icon.dim_192x192.png",
+    "frontend/public/assets/generated/pwa-icon.dim_512x512.png",
+    "frontend/public/manifest.webmanifest",
+    "frontend/public/sw.js",
+    "frontend/src/App.tsx",
+    "frontend/src/pwa/InstallAffordance.tsx",
+    "frontend/src/pwa/registerServiceWorker.ts",
+    "frontend/src/pwa/useInstallPrompt.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

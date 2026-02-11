@@ -1,40 +1,43 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Add spark particle effects on bullet impacts, obstacle/boss obstacle deaths, and player collisions with obstacles/borders.",
-  "architectural_notes": [],
+  "summary": "Project to be updated to support mobile-app style installation and offline play via Progressive Web App (PWA) features.",
+  "architectural_notes": [
+    "Implement PWA: web app manifest + service worker to enable install-to-home-screen and offline caching."
+  ],
   "known_issues": [],
   "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Square app icon illustration with a stylized jet/arcade motif (pwa-icon.dim_512x512.png)\n- Maskable-style square icon with safe padding for Android adaptive icons (pwa-icon-maskable.dim_512x512.png)\n- Small app icon variant (pwa-icon.dim_192x192.png)",
   "existing_features": [
     {
-      "id": "feature-add-a-dedicated-spark-like-particle-burst-visual-effect-that-can-be-spawned-at-an-x-y-position-with-tunable-intensity-e-g-normal-vs-boss-large-and-that-self-terminates-after-a-short-duration-without-requiring-per-frame-react-state-updates",
-      "title": "Add a dedicated spark-like particle burst visual effect that can be spawned at an (x%, y%) position, with tunable intensity (e.g., normal vs boss/large), and that self-terminates after a short duration without requiring per-frame React state updates.",
+      "id": "feature-add-progressive-web-app-metadata-so-the-game-is-installable-on-android-add-to-home-screen-and-ios-add-to-home-screen-launches-full-screen-and-has-a-proper-app-name-icon",
+      "title": "Add Progressive Web App metadata so the game is installable on Android (Add to Home Screen) and iOS (Add to Home Screen), launches full-screen, and has a proper app name/icon.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-service-worker-that-precaches-the-built-frontend-assets-and-enables-offline-play-after-the-first-successful-load",
+      "title": "Implement a service worker that precaches the built frontend assets and enables offline play after the first successful load.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-register-the-service-worker-from-a-non-immutable-frontend-entry-point-do-not-modify-frontend-src-main-tsx-so-that-it-runs-for-all-users",
+      "title": "Register the service worker from a non-immutable frontend entry point (do not modify `frontend/src/main.tsx`) so that it runs for all users.",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
     },
     {
-      "id": "feature-when-a-bullet-collides-with-an-obstacle-spawn-the-spark-burst-effect-at-the-collision-impact-position-in-addition-to-any-existing-hit-feedback-and-ensure-it-triggers-once-per-collision-event",
-      "title": "When a bullet collides with an obstacle, spawn the spark-burst effect at the collision/impact position in addition to any existing hit feedback, and ensure it triggers once per collision event.",
+      "id": "feature-add-a-small-in-app-install-affordance-non-blocking-that-helps-users-install-the-game-to-their-home-screen-when-the-browser-indicates-it-is-installable",
+      "title": "Add a small in-app install affordance (non-blocking) that helps users install the game to their home screen when the browser indicates it is installable.",
       "reqIds": [
         "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-when-a-boss-obstacle-dies-i-e-when-it-is-removed-due-to-taking-the-final-hit-spawn-a-higher-intensity-spark-burst-effect-at-the-boss-position-at-the-time-of-death",
-      "title": "When a boss obstacle dies (i.e., when it is removed due to taking the final hit), spawn a higher-intensity spark-burst effect at the boss position at the time of death.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-when-the-player-collides-with-an-obstacle-or-the-playfield-border-causing-player-death-game-over-spawn-a-spark-burst-effect-at-the-collision-position-time-in-addition-to-the-existing-player-explosion-sequence",
-      "title": "When the player collides with an obstacle or the playfield border (causing player death/game over), spawn a spark-burst effect at the collision position/time, in addition to the existing player explosion sequence.",
-      "reqIds": [
-        "REQ-6"
       ],
       "version": 1
     }
@@ -42,12 +45,12 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add spark-like particle effects when bullets hit obstacles/boss obstacles (including on death) and when player collides with obstacles or borders",
+      "summary": "Add Progressive Web App (PWA) support for installable mobile app-like experience with offline play (manifest + service worker caching)",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "projectName": "Add spark particle bursts on bullet impacts, obstacle/boss deaths, and player collisions",
+  "projectName": "Add Progressive Web App (PWA) install + offline support for the mobile game",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

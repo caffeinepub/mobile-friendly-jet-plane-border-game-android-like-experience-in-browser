@@ -9,8 +9,8 @@ interface ObstacleProps {
 }
 
 export default function Obstacle({ position, size, isBoss = false }: ObstacleProps) {
-  // Size-based scaling - boss gets extra large scale
-  const sizeScale = isBoss ? 1.8 : size === 'small' ? 0.75 : size === 'large' ? 1.25 : 1.0;
+  // Reduced size-based scaling - boss gets large scale but smaller than before
+  const sizeScale = isBoss ? 1.3 : size === 'small' ? 0.55 : size === 'large' ? 0.9 : 0.7;
   
   // Boss gets red color scheme
   const colorScheme = isBoss ? 'red' : 'orange';

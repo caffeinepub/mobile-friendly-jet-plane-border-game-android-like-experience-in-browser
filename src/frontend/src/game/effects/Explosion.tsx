@@ -1,3 +1,5 @@
+import { Z_INDEX } from '../ui/zIndex';
+
 interface ExplosionProps {
   position: { x: number; y: number };
   variant?: 'hit' | 'player' | 'bomb';
@@ -27,11 +29,12 @@ export default function Explosion({ position, variant = 'player' }: ExplosionPro
     // Smaller, faster hit effect for bullet impacts
     return (
       <div
-        className="absolute pointer-events-none z-50"
+        className="absolute pointer-events-none"
         style={{
           left: `${position.x}%`,
           top: `${position.y}%`,
           transform: 'translate(-50%, -50%)',
+          zIndex: Z_INDEX.VFX, // Use shared VFX z-index (below HUD and overlays)
         }}
       >
         {/* Flash */}
@@ -65,11 +68,12 @@ export default function Explosion({ position, variant = 'player' }: ExplosionPro
     // Massive bomb explosion for obstacle→player collision
     return (
       <div
-        className="absolute pointer-events-none z-50"
+        className="absolute pointer-events-none"
         style={{
           left: `${position.x}%`,
           top: `${position.y}%`,
           transform: 'translate(-50%, -50%)',
+          zIndex: Z_INDEX.VFX, // Use shared VFX z-index (below HUD and overlays)
         }}
       >
         {/* Massive flash */}
@@ -126,11 +130,12 @@ export default function Explosion({ position, variant = 'player' }: ExplosionPro
   // Standard player explosion
   return (
     <div
-      className="absolute pointer-events-none z-50"
+      className="absolute pointer-events-none"
       style={{
         left: `${position.x}%`,
         top: `${position.y}%`,
         transform: 'translate(-50%, -50%)',
+        zIndex: Z_INDEX.VFX, // Use shared VFX z-index (below HUD and overlays)
       }}
     >
       {/* Flash */}

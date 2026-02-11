@@ -4,6 +4,7 @@ import { Pause, Play } from 'lucide-react';
 import VirtualJoystick from './VirtualJoystick';
 import ShootButton from './ShootButton';
 import { formatTime } from '../utils/levelTimer';
+import { Z_INDEX } from './zIndex';
 
 type GameOverReason = 'border' | 'obstacle' | 'timeExpired' | null;
 
@@ -59,99 +60,162 @@ export default function GameOverlay({
 
   return (
     <>
-      {/* HUD - Top bar */}
+      {/* HUD - Top bar (above VFX, below overlays) */}
       {(gameState === 'playing' || gameState === 'paused') && (
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-2 py-1 sm:px-3 sm:py-1.5 bg-game-field/80 backdrop-blur-sm border-b border-game-border z-10">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="text-xs sm:text-sm font-bold text-white">
+        <div 
+          className="absolute top-0 left-0 right-0 flex items-center justify-between bg-game-field/80 backdrop-blur-sm border-b border-game-border"
+          style={{ 
+            zIndex: Z_INDEX.HUD,
+            paddingLeft: 'var(--compact-hud-padding-x)',
+            paddingRight: 'var(--compact-hud-padding-x)',
+            paddingTop: 'var(--compact-hud-padding-y)',
+            paddingBottom: 'var(--compact-hud-padding-y)',
+            gap: 'var(--compact-hud-gap)',
+          }}
+        >
+          <div className="flex items-center" style={{ gap: 'var(--compact-hud-gap)' }}>
+            <div className="font-bold text-white" style={{ fontSize: 'var(--compact-hud-font-size)' }}>
               SCORE: <span className="text-white">{score}</span>
             </div>
-            <div className="text-xs sm:text-sm font-bold text-white">
+            <div className="font-bold text-white" style={{ fontSize: 'var(--compact-hud-font-size)' }}>
               LEVEL: <span className="text-white">{level}</span>
             </div>
           </div>
-          <div className="text-xs sm:text-sm font-bold text-white">
+          <div className="font-bold text-white" style={{ fontSize: 'var(--compact-hud-font-size)' }}>
             TIME: <span className="text-white">{formatTime(timeRemaining)}</span>
           </div>
           <Button
             size="sm"
             variant="ghost"
             onClick={gameState === 'playing' ? onPause : onResume}
-            className="h-6 w-6 sm:h-7 sm:w-7 p-0"
+            className="p-0"
+            style={{ 
+              width: 'calc(var(--compact-hud-font-size) * 1.75)',
+              height: 'calc(var(--compact-hud-font-size) * 1.75)',
+            }}
           >
-            {gameState === 'playing' ? <Pause className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> : <Play className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
+            {gameState === 'playing' ? (
+              <Pause style={{ width: 'var(--compact-hud-font-size)', height: 'var(--compact-hud-font-size)' }} />
+            ) : (
+              <Play style={{ width: 'var(--compact-hud-font-size)', height: 'var(--compact-hud-font-size)' }} />
+            )}
           </Button>
         </div>
       )}
 
-      {/* Level progress bar - shown when boss is not active */}
+      {/* Level progress bar - shown when boss is not active (above VFX, below overlays) */}
       {(gameState === 'playing' || gameState === 'paused') && !bossActive && (
-        <div className="absolute top-10 sm:top-11 left-0 right-0 px-2 sm:px-3 z-10">
-          <div className="bg-game-field/80 backdrop-blur-sm border border-game-border rounded px-2 py-1">
-            <div className="flex items-center justify-between mb-0.5">
-              <span className="text-[10px] sm:text-xs font-bold text-white">LEVEL PROGRESS</span>
-              <span className="text-[10px] sm:text-xs font-bold text-white">
-                {destroyedThisLevel}/{targetObstacles}
-              </span>
-            </div>
-            <Progress value={levelProgress} className="h-1.5 sm:h-2 white-progress-bar" />
-          </div>
-        </div>
-      )}
-
-      {/* Boss health bar - shown when boss is active */}
-      {(gameState === 'playing' || gameState === 'paused') && bossActive && (
-        <div className="absolute top-10 sm:top-11 left-0 right-0 px-2 sm:px-3 z-10">
-          <div className="bg-game-field/80 backdrop-blur-sm border border-game-border rounded px-2 py-1">
-            <div className="flex items-center justify-between mb-0.5">
-              <span className="text-[10px] sm:text-xs font-bold text-white">BOSS</span>
-              <span className="text-[10px] sm:text-xs font-bold text-white">
-                {bossHits}/{bossMaxHits}
-              </span>
-            </div>
-            <Progress value={(bossHits / bossMaxHits) * 100} className="h-1.5 sm:h-2 white-progress-bar" />
-          </div>
-        </div>
-      )}
-
-      {/* Sensitivity control - bottom center */}
-      {(gameState === 'playing' || gameState === 'paused') && (
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 sm:bottom-3">
-          <div className="bg-game-field/80 backdrop-blur-sm border border-game-border rounded px-2 py-1 flex items-center gap-2">
-            <label htmlFor="sensitivity-slider" className="text-[10px] sm:text-xs font-bold text-white whitespace-nowrap">
-              SENSITIVITY
-            </label>
-            <input
-              id="sensitivity-slider"
-              type="range"
-              min="0.5"
-              max="2"
-              step="0.1"
-              value={sensitivity}
-              onChange={(e) => onSensitivityChange(parseFloat(e.target.value))}
-              className="w-16 sm:w-20 h-1 bg-game-border rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-game-accent [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-game-accent [&::-moz-range-thumb]:border-0"
-            />
-            <span className="text-[10px] sm:text-xs font-bold text-white min-w-[2ch]">
-              {sensitivity.toFixed(1)}
+        <div 
+          className="absolute left-0 right-0 bg-game-field/80 backdrop-blur-sm border border-game-border rounded"
+          style={{ 
+            zIndex: Z_INDEX.HUD,
+            top: 'calc(var(--compact-hud-padding-y) * 2 + var(--compact-hud-font-size) * 1.2 + 0.25rem)',
+            marginLeft: 'var(--compact-hud-padding-x)',
+            marginRight: 'var(--compact-hud-padding-x)',
+            padding: 'var(--compact-hud-padding-y) var(--compact-hud-padding-x)',
+          }}
+        >
+          <div className="flex items-center justify-between" style={{ marginBottom: 'calc(var(--compact-hud-padding-y) * 0.5)' }}>
+            <span className="font-bold text-white" style={{ fontSize: 'var(--compact-hud-font-size-small)' }}>
+              LEVEL PROGRESS
+            </span>
+            <span className="font-bold text-white" style={{ fontSize: 'var(--compact-hud-font-size-small)' }}>
+              {destroyedThisLevel}/{targetObstacles}
             </span>
           </div>
+          <Progress 
+            value={levelProgress} 
+            className="white-progress-bar" 
+            style={{ height: 'var(--compact-progress-height)' }}
+          />
         </div>
       )}
 
-      {/* Start screen */}
+      {/* Boss health bar - shown when boss is active (above VFX, below overlays) */}
+      {(gameState === 'playing' || gameState === 'paused') && bossActive && (
+        <div 
+          className="absolute left-0 right-0 bg-game-field/80 backdrop-blur-sm border border-game-border rounded"
+          style={{ 
+            zIndex: Z_INDEX.HUD,
+            top: 'calc(var(--compact-hud-padding-y) * 2 + var(--compact-hud-font-size) * 1.2 + 0.25rem)',
+            marginLeft: 'var(--compact-hud-padding-x)',
+            marginRight: 'var(--compact-hud-padding-x)',
+            padding: 'var(--compact-hud-padding-y) var(--compact-hud-padding-x)',
+          }}
+        >
+          <div className="flex items-center justify-between" style={{ marginBottom: 'calc(var(--compact-hud-padding-y) * 0.5)' }}>
+            <span className="font-bold text-white" style={{ fontSize: 'var(--compact-hud-font-size-small)' }}>
+              BOSS
+            </span>
+            <span className="font-bold text-white" style={{ fontSize: 'var(--compact-hud-font-size-small)' }}>
+              {bossHits}/{bossMaxHits}
+            </span>
+          </div>
+          <Progress 
+            value={(bossHits / bossMaxHits) * 100} 
+            className="white-progress-bar"
+            style={{ height: 'var(--compact-progress-height)' }}
+          />
+        </div>
+      )}
+
+      {/* Sensitivity control - bottom center (above VFX, below overlays) */}
+      {(gameState === 'playing' || gameState === 'paused') && (
+        <div 
+          className="absolute left-1/2 -translate-x-1/2 bg-game-field/80 backdrop-blur-sm border border-game-border rounded flex items-center"
+          style={{ 
+            zIndex: Z_INDEX.HUD,
+            bottom: 'calc(var(--compact-control-inset) + var(--safe-area-inset-bottom))',
+            padding: 'var(--compact-hud-padding-y) var(--compact-hud-padding-x)',
+            gap: 'calc(var(--compact-hud-gap) * 0.75)',
+          }}
+        >
+          <label htmlFor="sensitivity-slider" className="font-bold text-white whitespace-nowrap" style={{ fontSize: 'var(--compact-hud-font-size-small)' }}>
+            SENSITIVITY
+          </label>
+          <input
+            id="sensitivity-slider"
+            type="range"
+            min="0.5"
+            max="2"
+            step="0.1"
+            value={sensitivity}
+            onChange={(e) => onSensitivityChange(parseFloat(e.target.value))}
+            className="h-1 bg-game-border rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-game-accent [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-game-accent [&::-moz-range-thumb]:border-0"
+            style={{ width: 'calc(var(--compact-control-size) * 1.5)' }}
+          />
+          <span className="font-bold text-white" style={{ fontSize: 'var(--compact-hud-font-size-small)', minWidth: '2ch' }}>
+            {sensitivity.toFixed(1)}
+          </span>
+        </div>
+      )}
+
+      {/* Start screen (above all VFX and HUD) */}
       {gameState === 'idle' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-game-field/90 backdrop-blur-sm z-20">
-          <div className="text-center space-y-3 sm:space-y-4 px-3">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-game-accent drop-shadow-lg">
+        <div 
+          className="absolute inset-0 flex items-center justify-center bg-game-field/90 backdrop-blur-sm"
+          style={{ zIndex: Z_INDEX.OVERLAY }}
+        >
+          <div className="text-center" style={{ 
+            padding: 'var(--compact-overlay-padding)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--compact-overlay-spacing)',
+          }}>
+            <h1 className="font-bold text-game-accent drop-shadow-lg" style={{ fontSize: 'calc(var(--compact-overlay-title) * 1.5)' }}>
               JET FIGHTER
             </h1>
-            <p className="text-xs sm:text-sm text-white max-w-xs mx-auto">
+            <p className="text-white max-w-xs mx-auto" style={{ fontSize: 'var(--compact-overlay-text)' }}>
               Destroy obstacles, defeat bosses, and survive as long as you can!
             </p>
             <Button
               size="lg"
               onClick={onStart}
-              className="bg-game-primary hover:bg-game-primary-hover text-primary-foreground shadow-game-button hover:shadow-game-button-hover text-sm sm:text-base px-6 sm:px-8 py-2 sm:py-3 h-auto"
+              className="bg-game-primary hover:bg-game-primary-hover text-primary-foreground shadow-game-button hover:shadow-game-button-hover h-auto mx-auto"
+              style={{ 
+                fontSize: 'var(--compact-overlay-text)',
+                padding: 'calc(var(--compact-overlay-spacing) * 0.75) calc(var(--compact-overlay-spacing) * 1.5)',
+              }}
             >
               START GAME
             </Button>
@@ -159,15 +223,28 @@ export default function GameOverlay({
         </div>
       )}
 
-      {/* Pause overlay */}
+      {/* Pause overlay (above all VFX and HUD) */}
       {gameState === 'paused' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-game-field/70 backdrop-blur-sm z-20">
-          <div className="text-center space-y-3 sm:space-y-4">
-            <h2 className="text-2xl sm:text-3xl font-bold text-game-accent drop-shadow-lg">PAUSED</h2>
+        <div 
+          className="absolute inset-0 flex items-center justify-center bg-game-field/70 backdrop-blur-sm"
+          style={{ zIndex: Z_INDEX.OVERLAY }}
+        >
+          <div className="text-center" style={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--compact-overlay-spacing)',
+          }}>
+            <h2 className="font-bold text-game-accent drop-shadow-lg" style={{ fontSize: 'calc(var(--compact-overlay-title) * 1.25)' }}>
+              PAUSED
+            </h2>
             <Button
               size="lg"
               onClick={onResume}
-              className="bg-game-primary hover:bg-game-primary-hover text-primary-foreground shadow-game-button hover:shadow-game-button-hover text-sm sm:text-base px-6 sm:px-8 py-2 sm:py-3 h-auto"
+              className="bg-game-primary hover:bg-game-primary-hover text-primary-foreground shadow-game-button hover:shadow-game-button-hover h-auto"
+              style={{ 
+                fontSize: 'var(--compact-overlay-text)',
+                padding: 'calc(var(--compact-overlay-spacing) * 0.75) calc(var(--compact-overlay-spacing) * 1.5)',
+              }}
             >
               RESUME
             </Button>
@@ -175,28 +252,49 @@ export default function GameOverlay({
         </div>
       )}
 
-      {/* Game over screen */}
+      {/* Game over screen (above all VFX and HUD) */}
       {gameState === 'gameover' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-game-field/90 backdrop-blur-sm z-20">
-          <div className="text-center space-y-3 sm:space-y-4 px-3">
+        <div 
+          className="absolute inset-0 flex items-center justify-center bg-game-field/90 backdrop-blur-sm"
+          style={{ zIndex: Z_INDEX.OVERLAY }}
+        >
+          <div className="text-center" style={{ 
+            padding: 'var(--compact-overlay-padding)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--compact-overlay-spacing)',
+          }}>
             {gameOverReason === 'timeExpired' && (
-              <h2 className="text-4xl sm:text-5xl font-bold text-white drop-shadow-lg mb-2 animate-pulse">
+              <h2 className="font-bold text-white drop-shadow-lg animate-pulse" style={{ 
+                fontSize: 'calc(var(--compact-overlay-title) * 1.5)',
+                marginBottom: 'calc(var(--compact-overlay-spacing) * 0.5)',
+              }}>
                 TIME UP!
               </h2>
             )}
-            <h2 className="text-3xl sm:text-4xl font-bold text-destructive drop-shadow-lg">GAME OVER</h2>
-            <div className="space-y-1 sm:space-y-2">
-              <p className="text-base sm:text-lg font-bold text-white">
-                Final Score: <span className="text-white">{score}</span>
+            <h2 className="font-bold text-destructive drop-shadow-lg" style={{ fontSize: 'calc(var(--compact-overlay-title) * 1.25)' }}>
+              GAME OVER
+            </h2>
+            <div style={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'calc(var(--compact-overlay-spacing) * 0.5)',
+            }}>
+              <p className="text-white" style={{ fontSize: 'var(--compact-overlay-text)' }}>
+                Final Score: <span className="font-bold text-game-accent">{score}</span>
               </p>
-              <p className="text-base sm:text-lg font-bold text-white">
-                Level Reached: <span className="text-white">{level}</span>
+              <p className="text-white" style={{ fontSize: 'calc(var(--compact-overlay-text) * 0.875)' }}>
+                Level Reached: <span className="font-bold text-game-accent">{level}</span>
               </p>
             </div>
             <Button
               size="lg"
               onClick={onStart}
-              className="bg-game-primary hover:bg-game-primary-hover text-primary-foreground shadow-game-button hover:shadow-game-button-hover text-sm sm:text-base px-6 sm:px-8 py-2 sm:py-3 h-auto"
+              className="bg-game-primary hover:bg-game-primary-hover text-primary-foreground shadow-game-button hover:shadow-game-button-hover h-auto"
+              style={{ 
+                fontSize: 'var(--compact-overlay-text)',
+                padding: 'calc(var(--compact-overlay-spacing) * 0.75) calc(var(--compact-overlay-spacing) * 1.5)',
+              }}
             >
               PLAY AGAIN
             </Button>
@@ -204,23 +302,41 @@ export default function GameOverlay({
         </div>
       )}
 
-      {/* Level complete screen */}
+      {/* Level complete screen (above all VFX and HUD) */}
       {gameState === 'levelcomplete' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-game-field/90 backdrop-blur-sm z-20">
-          <div className="text-center space-y-3 sm:space-y-4 px-3">
-            <h2 className="text-3xl sm:text-4xl font-bold text-game-accent drop-shadow-lg">LEVEL COMPLETE!</h2>
-            <div className="space-y-1 sm:space-y-2">
-              <p className="text-base sm:text-lg font-bold text-white">
-                Score: <span className="text-white">{score}</span>
+        <div 
+          className="absolute inset-0 flex items-center justify-center bg-game-field/90 backdrop-blur-sm"
+          style={{ zIndex: Z_INDEX.OVERLAY }}
+        >
+          <div className="text-center" style={{ 
+            padding: 'var(--compact-overlay-padding)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--compact-overlay-spacing)',
+          }}>
+            <h2 className="font-bold text-game-accent drop-shadow-lg animate-pulse" style={{ fontSize: 'calc(var(--compact-overlay-title) * 1.25)' }}>
+              LEVEL {level} COMPLETE!
+            </h2>
+            <div style={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'calc(var(--compact-overlay-spacing) * 0.5)',
+            }}>
+              <p className="text-white" style={{ fontSize: 'var(--compact-overlay-text)' }}>
+                Score: <span className="font-bold text-game-accent">{score}</span>
               </p>
-              <p className="text-base sm:text-lg font-bold text-white">
-                Next Level: <span className="text-white">{level + 1}</span>
+              <p className="text-white" style={{ fontSize: 'calc(var(--compact-overlay-text) * 0.875)' }}>
+                Obstacles Destroyed: <span className="font-bold text-game-accent">{destroyedThisLevel}</span>
               </p>
             </div>
             <Button
               size="lg"
               onClick={onNextLevel}
-              className="bg-game-primary hover:bg-game-primary-hover text-primary-foreground shadow-game-button hover:shadow-game-button-hover text-sm sm:text-base px-6 sm:px-8 py-2 sm:py-3 h-auto"
+              className="bg-game-primary hover:bg-game-primary-hover text-primary-foreground shadow-game-button hover:shadow-game-button-hover h-auto"
+              style={{ 
+                fontSize: 'var(--compact-overlay-text)',
+                padding: 'calc(var(--compact-overlay-spacing) * 0.75) calc(var(--compact-overlay-spacing) * 1.5)',
+              }}
             >
               NEXT LEVEL
             </Button>
@@ -228,22 +344,35 @@ export default function GameOverlay({
         </div>
       )}
 
-      {/* Virtual controls - only show during gameplay */}
-      {(gameState === 'playing' || gameState === 'paused') && (
+      {/* Virtual controls - only shown during playing state */}
+      {gameState === 'playing' && (
         <>
-          <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 z-10">
-            <VirtualJoystick
-              onMove={onJoystickMove}
-              onNeutral={onJoystickNeutral}
-              resetToken={joystickResetToken}
-            />
+          {/* Shoot button - bottom left with safe area support */}
+          <div 
+            className="absolute safe-bottom safe-left pointer-events-none"
+            style={{ zIndex: Z_INDEX.CONTROLS }}
+          >
+            <div className="pointer-events-auto">
+              <ShootButton
+                onFireStart={onFireStart}
+                onFireEnd={onFireEnd}
+                disabled={gameState !== 'playing'}
+              />
+            </div>
           </div>
-          <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-10">
-            <ShootButton 
-              onFireStart={onFireStart} 
-              onFireEnd={onFireEnd}
-              disabled={gameState !== 'playing'}
-            />
+
+          {/* Joystick - bottom right with safe area support */}
+          <div 
+            className="absolute safe-bottom safe-right pointer-events-none"
+            style={{ zIndex: Z_INDEX.CONTROLS }}
+          >
+            <div className="pointer-events-auto">
+              <VirtualJoystick
+                onMove={onJoystickMove}
+                onNeutral={onJoystickNeutral}
+                resetToken={joystickResetToken}
+              />
+            </div>
           </div>
         </>
       )}

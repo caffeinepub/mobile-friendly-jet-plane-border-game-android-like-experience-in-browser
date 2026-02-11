@@ -1,20 +1,29 @@
 import { useState, useEffect } from 'react';
 
 const STORAGE_KEY = 'jetfighter-joystick-sensitivity';
-const DEFAULT_SENSITIVITY = 2.0; // Default to 2.0 as requested
+const DEFAULT_SENSITIVITY = 2.0;
+const MIN_SENSITIVITY = 0.5;
+const MAX_SENSITIVITY = 2.0;
 
 /**
  * Hook to manage joystick sensitivity with localStorage persistence.
  * Returns current sensitivity value and a setter function.
+ * Validates and clamps stored values to prevent out-of-range or corrupted data.
  */
 export function useJoystickSensitivity() {
   const [sensitivity, setSensitivity] = useState<number>(() => {
-    // Initialize from localStorage on mount
+    // Initialize from localStorage on mount with validation
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored !== null) {
         const parsed = parseFloat(stored);
-        if (!isNaN(parsed) && parsed >= 0.5 && parsed <= 2) {
+        // Validate: must be finite number within range
+        if (
+          !isNaN(parsed) && 
+          isFinite(parsed) && 
+          parsed >= MIN_SENSITIVITY && 
+          parsed <= MAX_SENSITIVITY
+        ) {
           return parsed;
         }
       }
@@ -27,11 +36,19 @@ export function useJoystickSensitivity() {
   // Persist to localStorage whenever sensitivity changes
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, sensitivity.toString());
+      // Clamp value before storing to ensure it's always in valid range
+      const clampedValue = Math.max(MIN_SENSITIVITY, Math.min(MAX_SENSITIVITY, sensitivity));
+      localStorage.setItem(STORAGE_KEY, clampedValue.toString());
     } catch (error) {
       console.warn('Failed to save sensitivity to localStorage:', error);
     }
   }, [sensitivity]);
 
-  return { sensitivity, setSensitivity };
+  // Wrap setter to enforce clamping
+  const setClampedSensitivity = (value: number) => {
+    const clamped = Math.max(MIN_SENSITIVITY, Math.min(MAX_SENSITIVITY, value));
+    setSensitivity(clamped);
+  };
+
+  return { sensitivity, setSensitivity: setClampedSensitivity };
 }
